@@ -64,6 +64,3 @@ npm run dev
 About
 
 This project was built to practice full-stack development with React, TypeScript, Node.js, and Express while working with a real external API.
-
-This project was built to practice full-stack development with React, TypeScript, Node.js, and Express while working with a real external API.
-``` 
