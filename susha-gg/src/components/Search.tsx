@@ -1,7 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
-export default function Search(){
-const [ign, setIgn] = useState("");
+import type { PlayerData } from "../App";
+
+type SearchProps = {
+  updateData: (newData: PlayerData) => void;
+};
+
+export default function Search({ updateData }: SearchProps){
+const [gameId, setGameId] = useState("");
+// const [tag, setTag] = useState("");
 const [region, setRegion] = useState("EUNE");
 
 // useEffect(() => {
@@ -12,18 +19,30 @@ const [region, setRegion] = useState("EUNE");
 async function handleSubmit(e: React.FormEvent){
 
     e.preventDefault();
-    const response = await fetch(`http://localhost:3000/getPlayer?ign=${ign}&region=${region}`);
+
+    const paramaters = new URLSearchParams({
+        gameid: gameId,
+        region: region
+    })
+
+    // console.log(paramaters.toString());
+
+    const response = await fetch(`http://localhost:3000/getPlayer?${paramaters.toString()}`);
+    console.log(`{http://localhost:3000/getPlayer?${paramaters.toString()}`)
     const data = await response.json();
     console.log(data);
+    updateData(data);
 }
 
 
     return(
         <div className="searchForm">
+           <h1>Search for a player</h1>
            <form onSubmit={handleSubmit} action="">
             <input type="text" 
-                   value={ign}
-                   onChange={(e) => setIgn(e.target.value)}
+                   value={gameId}
+                   placeholder="Example: Carnivore#beef"
+                   onChange={(e) => setGameId(e.target.value)}
             />
             <select name="" id="" value={region} onChange={(e) => setRegion(e.target.value)}>
               <option value="EUNE">EUNE</option>

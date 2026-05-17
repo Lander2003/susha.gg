@@ -5,16 +5,43 @@ import Content from './components/Content'
 
 import './App.css'
 
+
+type SimplifiedMatch = {
+  matchId: string;
+  champion: string;
+  kills: number;
+  deaths: number;
+  assists: number;
+  win: boolean;
+  role: string;
+  cs: number;
+  duration: number;
+  queueId: number;
+};
+
+export type PlayerData = {
+  gameName: string;
+  gameTag: string;
+  region: string;
+  matchIds: string[];
+  simplifiedMatches: SimplifiedMatch[];
+};
+
 function App() {
-  // const [count, setCount] = useState(0)
+  const [playerData, setPlayerData] = useState<PlayerData | null>(null);
+
+ function updateData(newData: PlayerData) {
+  setPlayerData(newData);
+}
+
 
   return (
     <>
     <Navbar />
     <main>
-        <Search />
+        <Search updateData={updateData} />
         <div className="content-container">
-          <Content />
+          <Content playerData={playerData} />
         </div>
     </main>
     </>
