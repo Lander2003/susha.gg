@@ -20,15 +20,15 @@ async function handleSubmit(e: React.FormEvent){
 
     e.preventDefault();
 
-    const paramaters = new URLSearchParams({
+    const parameters = new URLSearchParams({
         gameid: gameId,
-        region: region
-    })
+        region: region,
+    });
 
     // console.log(paramaters.toString());
 
-    const response = await fetch(`http://localhost:3000/getPlayer?${paramaters.toString()}`);
-    console.log(`{http://localhost:3000/getPlayer?${paramaters.toString()}`)
+    const response = await fetch(`http://localhost:3000/getPlayer?${parameters.toString()}`);
+    console.log(`{http://localhost:3000/getPlayer?${parameters.toString()}`)
     const data = await response.json();
     console.log(data);
     updateData(data);

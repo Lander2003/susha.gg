@@ -123,3 +123,20 @@ h1, h2, h3, h4, h5 {
   margin: 0;
   list-style: none;
 }
+
+/* Ranked Solo Card */
+
+.rank-emblem-wrapper {
+  width: 160px;
+  height: 120px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rank-emblem {
+  width: 600px;
+  height: auto;
+  object-fit: contain;
+}

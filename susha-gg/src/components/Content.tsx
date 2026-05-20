@@ -1,4 +1,5 @@
 import type { PlayerData } from "../App";
+import RankedSoloCard from "./RankedSoloCard";
 
 type ContentProps = {
   playerData: PlayerData | null;
@@ -14,6 +15,8 @@ return (
   // <div className="content-container"></div>
   <div  className="content-container">
   <h1>Viewing: {playerData.gameName}</h1>
+
+  <RankedSoloCard rankedSolo={playerData.rankedSolo} />
 
 {playerData.simplifiedMatches.map((match) => {
   const imageLink = `https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/${match.champion}.png`

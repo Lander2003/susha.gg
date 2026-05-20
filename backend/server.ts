@@ -1,112 +1,174 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { log } from "node:console";
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT;
-const riotKey = process.env.RIOT_API_KEY;
+const PORT = process.env.PORT || 3000;
+const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
 app.use(cors());
 app.use(express.json());
 
-app.get("/getPlayer", async (req, res) => {
-  const gameId = String(req.query.gameid || "");
+type Region = "NA" | "BR" | "OCE" | "EUNE" | "EUW" | "KR";
 
-  const [gameName, gameTag] = gameId.split("#");
+const routingMap: Record<Region, string> = {
+  NA: "americas",
+  BR: "americas",
+  OCE: "americas",
+  EUNE: "europe",
+  EUW: "europe",
+  KR: "asia",
+};
 
-  const region = String(req.query.region);
-  console.log(gameId, gameName, gameTag, region);
+const platformMap: Record<Region, string> = {
+  NA: "na1",
+  BR: "br1",
+  OCE: "oc1",
+  EUNE: "eun1",
+  EUW: "euw1",
+  KR: "kr",
+};
 
-  
-  const routingMap: Record<string, string> = {
-    NA: "americas",
-    BR: "americas",
-    OCE: "americas",
-    EUNE: "europe",
-    EUW: "europe",
-    KR: "asia",
-  };
-
-  const routingRegion = routingMap[region];
-
-  if(!routingRegion){
-    return res.status(400).json({ error: "Invalid region" });
-  }
-
-  const url = `https://${routingRegion}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${gameName}/${gameTag}`;
-  console.log(url);
-  const riotResponse = await fetch(url, {
-    headers: {
-      "X-Riot-Token": riotKey!
-    }
-  })
-
- if(riotResponse.status != 200){
-    return res.json({ error: "Invalid" });
-  }
-
-  const data = await riotResponse.json();
-
-
-  const puuid = data.puuid;
-  // console.log(puuid)
-                                                                               
-  const matchResponse = await fetch(`https://${routingRegion}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?start=0&count=10`, {
-    headers: {
-      "X-Riot-Token": riotKey!
-    }
-  });
-
-  const matchIds = await matchResponse.json();
-console.log(matchResponse);
-  console.log(matchIds);
-
-  const simplifiedMatches = [];
-
-for (let i = 0; i < matchIds.length; i++) {
-  const matchId = matchIds[i];
-
-  const singleMatchResponse = await fetch(
-    `https://${routingRegion}.api.riotgames.com/lol/match/v5/matches/${matchId}`,
-    {
-      headers: {
-        "X-Riot-Token": riotKey!,
-      },
-    }
-  );
-
-  const singleMatch = await singleMatchResponse.json();
-
-  const searchedPlayer = singleMatch.info.participants.find(
-    (participant: any) => participant.puuid === puuid
-  );
-
-  const simplifiedMatch = {
-    matchId: singleMatch.metadata.matchId,
-    champion: searchedPlayer.championName,
-    kills: searchedPlayer.kills,
-    deaths: searchedPlayer.deaths,
-    assists: searchedPlayer.assists,
-    win: searchedPlayer.win,
-    role: searchedPlayer.teamPosition,
-    cs: searchedPlayer.totalMinionsKilled + searchedPlayer.neutralMinionsKilled,
-    duration: singleMatch.info.gameDuration,
-    queueId: singleMatch.info.queueId,
-  };
-
-  simplifiedMatches.push(simplifiedMatch);
+function isRegion(value: string): value is Region {
+  return value in routingMap;
 }
 
-  res.json({
-  gameName,
-  gameTag,
-  region,
-  matchIds,
-  simplifiedMatches
-});
+async function riotFetch(url: string) {
+  if (!RIOT_API_KEY) {
+    throw new Error("Missing RIOT_API_KEY in .env");
+  }
+
+  const response = await fetch(url, {
+    headers: {
+      "X-Riot-Token": RIOT_API_KEY,
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+
+    console.error("Riot API failed:");
+    console.error("URL:", url);
+    console.error("Status:", response.status);
+    console.error("Body:", errorText);
+
+    throw new Error(`Riot API error: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+app.get("/getPlayer", async (req, res) => {
+  try {
+    const gameId = String(req.query.gameid || "");
+    const region = String(req.query.region || "").toUpperCase();
+
+    const [gameName, gameTag] = gameId.split("#");
+
+    if (!gameName || !gameTag) {
+      return res.status(400).json({
+        error: "Invalid Riot ID. Use format: Name#Tag",
+      });
+    }
+
+    if (!isRegion(region)) {
+      return res.status(400).json({
+        error: "Invalid region",
+      });
+    }
+
+    const routingRegion = routingMap[region];
+    const platformRegion = platformMap[region];
+
+    const encodedGameName = encodeURIComponent(gameName);
+    const encodedGameTag = encodeURIComponent(gameTag);
+
+    // 1. Get account data from Riot ID
+    const accountData = await riotFetch(
+      `https://${routingRegion}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodedGameName}/${encodedGameTag}`
+    );
+
+    const puuid = accountData.puuid;
+
+    let rankedSolo = null;
+
+try {
+  const rankedData = await riotFetch(
+    `https://${platformRegion}.api.riotgames.com/lol/league/v4/entries/by-puuid/${puuid}`
+  );
+
+  const soloQueue = rankedData.find(
+    (queue: any) => queue.queueType === "RANKED_SOLO_5x5"
+  );
+
+  rankedSolo = soloQueue
+    ? {
+        tier: soloQueue.tier,
+        rank: soloQueue.rank,
+        lp: soloQueue.leaguePoints,
+        wins: soloQueue.wins,
+        losses: soloQueue.losses,
+        totalGames: soloQueue.wins + soloQueue.losses,
+      }
+    : null;
+} catch (error) {
+  console.log("Could not fetch ranked solo data:", error);
+}
+
+
+
+    // 2. Get recent match IDs
+    const matchIds = await riotFetch(
+      `https://${routingRegion}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?start=0&count=10`
+    );
+
+    const simplifiedMatches = [];
+
+    // 3. Get details for each match
+    for (const matchId of matchIds) {
+      const singleMatch = await riotFetch(
+        `https://${routingRegion}.api.riotgames.com/lol/match/v5/matches/${matchId}`
+      );
+
+      const searchedPlayer = singleMatch.info.participants.find(
+        (participant: any) => participant.puuid === puuid
+      );
+
+      if (!searchedPlayer) continue;
+
+      simplifiedMatches.push({
+        matchId: singleMatch.metadata.matchId,
+        champion: searchedPlayer.championName,
+        kills: searchedPlayer.kills,
+        deaths: searchedPlayer.deaths,
+        assists: searchedPlayer.assists,
+        win: searchedPlayer.win,
+        role: searchedPlayer.teamPosition,
+        cs:
+          searchedPlayer.totalMinionsKilled +
+          searchedPlayer.neutralMinionsKilled,
+        duration: singleMatch.info.gameDuration,
+        queueId: singleMatch.info.queueId,
+      });
+    }
+
+    res.json({
+      gameName,
+      gameTag,
+      region,
+      rankedSolo,
+      matchIds,
+      simplifiedMatches,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      error: "Something went wrong while fetching player data",
+    });
+  }
 });
 
 app.listen(PORT, () => {

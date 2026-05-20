@@ -23,6 +23,14 @@ export type PlayerData = {
   gameName: string;
   gameTag: string;
   region: string;
+  rankedSolo: {
+    tier: string;
+    rank: string;
+    lp: number;
+    wins: number;
+    losses: number;
+    totalGames: number;
+  } | null;
   matchIds: string[];
   simplifiedMatches: SimplifiedMatch[];
 };
