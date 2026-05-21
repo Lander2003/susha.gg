@@ -19,7 +19,7 @@ h1, h2, h3, h4, h5 {
   font-style: normal;
 }
 
-/* Navbar */
+/* 1. Navbar */
 
 .navbar{
   display: flex;
@@ -53,13 +53,11 @@ h1, h2, h3, h4, h5 {
   color: white;
 }
 
-/* Search Form */
+/* 2. Search Form */
 
 .searchForm {
   text-align: center;
-  margin: 0 auto;
-  margin: 0;
-  margin: 60px 0 30px 0;
+  margin: 30px 0;
 }
 
 .searchForm form input {
@@ -87,29 +85,32 @@ h1, h2, h3, h4, h5 {
   background-color: #0066fe;
 }
 
-/* Content */
+/* 3. Content */
 .content-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  /* width: 100%; */
+  gap: 20px;
+  /* background-color: black; */
 }
 
 .match-card {
-  display: grid;
-  grid-template-columns: 120px 160px 320px;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 24px;
-  margin-bottom: 16px;
-  padding: 15px;
-  background-color: green;
-  border-radius: 15px;
-  box-shadow: 1px 3px 6px #8b8b8b;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  border-radius: 10px;
 }
 
 .match-card img {
-  width: 100px;
-  height: 100px;
+  width: 60px;
+  height: 60px;
   object-fit: cover;
   display: block;
   border-radius: 100%;
@@ -124,7 +125,26 @@ h1, h2, h3, h4, h5 {
   list-style: none;
 }
 
-/* Ranked Solo Card */
+/* Player information */
+
+.player-info{
+  background-color: #0f0f0f;
+    padding: 15px 30px;
+    border-radius: 10px;
+    color: white;
+    /* display: flex; */
+}
+
+.player-info h1{
+      margin-top: 5px;
+}
+
+
+/* 3. Ranked Solo Card */
+
+.ranked-card h3, h2, p{
+margin: 5px 0;
+}
 
 .rank-emblem-wrapper {
   width: 160px;

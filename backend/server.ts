@@ -124,35 +124,34 @@ try {
       `https://${routingRegion}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?start=0&count=10`
     );
 
-    const simplifiedMatches = [];
+    const simplifiedMatches = await Promise.all(
+  matchIds.map(async (matchId: string) => {
+    const singleMatch = await riotFetch(
+      `https://${routingRegion}.api.riotgames.com/lol/match/v5/matches/${matchId}`
+    );
 
-    // 3. Get details for each match
-    for (const matchId of matchIds) {
-      const singleMatch = await riotFetch(
-        `https://${routingRegion}.api.riotgames.com/lol/match/v5/matches/${matchId}`
-      );
+    const searchedPlayer = singleMatch.info.participants.find(
+      (participant: any) => participant.puuid === puuid
+    );
 
-      const searchedPlayer = singleMatch.info.participants.find(
-        (participant: any) => participant.puuid === puuid
-      );
+    if (!searchedPlayer) return null;
 
-      if (!searchedPlayer) continue;
-
-      simplifiedMatches.push({
-        matchId: singleMatch.metadata.matchId,
-        champion: searchedPlayer.championName,
-        kills: searchedPlayer.kills,
-        deaths: searchedPlayer.deaths,
-        assists: searchedPlayer.assists,
-        win: searchedPlayer.win,
-        role: searchedPlayer.teamPosition,
-        cs:
-          searchedPlayer.totalMinionsKilled +
-          searchedPlayer.neutralMinionsKilled,
-        duration: singleMatch.info.gameDuration,
-        queueId: singleMatch.info.queueId,
-      });
-    }
+    return {
+      matchId: singleMatch.metadata.matchId,
+      champion: searchedPlayer.championName,
+      kills: searchedPlayer.kills,
+      deaths: searchedPlayer.deaths,
+      assists: searchedPlayer.assists,
+      win: searchedPlayer.win,
+      role: searchedPlayer.teamPosition,
+      cs:
+        searchedPlayer.totalMinionsKilled +
+        searchedPlayer.neutralMinionsKilled,
+      duration: singleMatch.info.gameDuration,
+      queueId: singleMatch.info.queueId,
+    };
+  })
+);
 
     res.json({
       gameName,
