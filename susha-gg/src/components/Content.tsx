@@ -3,14 +3,14 @@ import RankedSoloCard from "./RankedSoloCard";
 
 type ContentProps = {
   playerData: PlayerData | null;
+  // errorMessage: string;
 };
 
 export default function Content({ playerData }: ContentProps) {
 
   if (!playerData) {
-    return <h1>Search for a player?</h1>
+    return null;
   }
-
   return (
     <div className="content-container">
       <div className="player-info">

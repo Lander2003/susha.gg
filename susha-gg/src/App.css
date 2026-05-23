@@ -87,14 +87,19 @@ h1, h2, h3, h4, h5 {
 
 /* 3. Content */
 .content-container {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: center;
-  /* width: 100%; */
-  gap: 20px;
-  /* background-color: black; */
+ display: flex;
+    max-width: 1100px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: center;
+    /* width: 100%; */
+    margin: 0 auto;
+    gap: 20px;
+    background-color: #2b86ff;
+    padding: 40px 0;
+    border-radius: 15px;
+      box-shadow: 2px 3px 10px 1px #00000099;
 }
 
 .match-card {
@@ -104,8 +109,9 @@ h1, h2, h3, h4, h5 {
   justify-content: space-between;
   gap: 10px;
   padding: 10px 15px;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   border-radius: 10px;
+  box-shadow: 2px 3px 10px 1px #00000099;
 }
 
 .match-card img {
@@ -160,3 +166,26 @@ margin: 5px 0;
   height: auto;
   object-fit: contain;
 }
+/* Loading icon */
+
+.loader {
+  width: 80px;
+  height: 80px;
+  border: 8px solid #d3d3d3;
+  border-top: 8px solid #3888ff;
+  border-radius: 50%;
+
+  animation: spin 1s ease infinite;
+  margin: 2rem auto;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+

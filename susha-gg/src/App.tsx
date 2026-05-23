@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState} from 'react'
 import Navbar from './components/Navbar'
 import Search from './components/Search'
-import Content from './components/Content'  
+import Content from './components/Content'
 
 import './App.css'
 
@@ -35,25 +35,41 @@ export type PlayerData = {
   simplifiedMatches: SimplifiedMatch[];
 };
 
+
+
+
 function App() {
   const [playerData, setPlayerData] = useState<PlayerData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
- function updateData(newData: PlayerData) {
-  setPlayerData(newData);
-}
+
+  function updateData(newData: PlayerData) {
+    setPlayerData(newData);
+  }
+
+  function updateLoadingState(loadingState: boolean){
+    setIsLoading(loadingState);
+  }
+
+  function setErrorMessage(errorMessage: string){
+      setError(errorMessage);
+  }
 
 
   return (
     <>
-    <Navbar />
-    <main>
-        <Search updateData={updateData} />
-        <div className="content-container">
-          <Content playerData={playerData} />
-        </div>
-    </main>
+      <Navbar />
+      <main>
+        <Search updateData={updateData} updateLoadingState={updateLoadingState} updateError={setErrorMessage}/>
+        {error && <h1 style={{textAlign: "center", color: "#f42b2b"}}>{error}</h1>}
+      
+         {isLoading && <div className="loader"></div>} 
+         {!isLoading && playerData && <Content playerData={playerData} />}
+
+      </main>
     </>
   )
 }
 
-export default App
+export default App;

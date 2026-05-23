@@ -36,31 +36,27 @@ function isRegion(value: string): value is Region {
 }
 
 async function riotFetch(url: string) {
-  if (!RIOT_API_KEY) {
-    throw new Error("Missing RIOT_API_KEY in .env");
-  }
-
   const response = await fetch(url, {
     headers: {
-      "X-Riot-Token": RIOT_API_KEY,
+      "X-Riot-Token": process.env.RIOT_API_KEY!,
     },
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
+    const error: any = new Error(
+      `Riot API responded with ${response.status}`
+    );
 
-    console.error("Riot API failed:");
-    console.error("URL:", url);
-    console.error("Status:", response.status);
-    console.error("Body:", errorText);
+    error.status = response.status;
 
-    throw new Error(`Riot API error: ${response.status}`);
+    throw error;
   }
 
   return response.json();
 }
 
 app.get("/getPlayer", async (req, res) => {
+
   try {
     const gameId = String(req.query.gameid || "");
     const region = String(req.query.region || "").toUpperCase();
@@ -161,12 +157,16 @@ try {
       matchIds,
       simplifiedMatches,
     });
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
+  } catch (error: any) {
+    if(error.status == 404){
+      return res.status(404).json({
+      error: "Results not found for this player",
+    });
+     }else {
+     return res.status(500).json({
       error: "Something went wrong while fetching player data",
     });
+    }
   }
 });
 

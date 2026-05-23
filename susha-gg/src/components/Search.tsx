@@ -4,9 +4,11 @@ import type { PlayerData } from "../App";
 
 type SearchProps = {
   updateData: (newData: PlayerData) => void;
+  updateLoadingState: (loadingState: boolean) => void;
+  updateError: (errorMessage: string) => void;
 };
 
-export default function Search({ updateData }: SearchProps){
+export default function Search({ updateData, updateLoadingState, updateError }: SearchProps){
 const [gameId, setGameId] = useState("");
 // const [tag, setTag] = useState("");
 const [region, setRegion] = useState("EUNE");
@@ -17,10 +19,13 @@ const [region, setRegion] = useState("EUNE");
 
 
 async function handleSubmit(e: React.FormEvent){
-
+    // updateData();
+    updateError("");
+    updateLoadingState(true);
     e.preventDefault();
 
-    const parameters = new URLSearchParams({
+    try {
+        const parameters = new URLSearchParams({
         gameid: gameId,
         region: region,
     });
@@ -30,8 +35,17 @@ async function handleSubmit(e: React.FormEvent){
     const response = await fetch(`http://localhost:3000/getPlayer?${parameters.toString()}`);
     console.log(`{http://localhost:3000/getPlayer?${parameters.toString()}`)
     const data = await response.json();
+
+    if(data.error){
+        console.log(data.error);
+        updateError(data.error);
+    } else {
     console.log(data);
     updateData(data);
+    }
+    } finally {
+        updateLoadingState(false);
+    }
 }
 
 
