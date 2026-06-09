@@ -1,19 +1,23 @@
-*{
-    box-sizing: border-box;
+* {
+  box-sizing: border-box;
 }
 
 body {
-    background-color: #d5d5d5;
-    color:#131313;
-    font-family: "Stack Sans Headline", sans-serif;
+  background-color: #d5d5d5;
+  color: #131313;
+  font-family: "Stack Sans Headline", sans-serif;
   font-optical-sizing: auto;
   font-weight: lighter;
   font-style: normal;
   margin: 0;
 }
 
-h1, h2, h3, h4, h5 {
- font-family: "Cinzel", serif;
+h1,
+h2,
+h3,
+h4,
+h5 {
+  font-family: "Cinzel", serif;
   font-optical-sizing: auto;
   font-weight: bold;
   font-style: normal;
@@ -21,34 +25,35 @@ h1, h2, h3, h4, h5 {
 
 /* 1. Navbar */
 
-.navbar{
+.navbar {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  /* flex-direction: column; */
+  gap: 50px;
+  justify-content: space-around;
   align-items: center;
   background-color: #0f0f0f;
   color: white;
   padding: 0 15px;
 }
 
-.navbar h1{
+.navbar h1 {
   color: #3888ff;
   font-weight: lighter;
-  margin: 10px 0 0 0;
+  /* margin: 10px 0 0 0; */
 }
 
-.nav-links{
+.nav-links {
   display: flex;
   align-items: center;
   margin: 5px 0;
 }
 
-.nav-links li{
+.nav-links li {
   list-style: none;
   padding: 10px;
 }
 
-.nav-links li a{
+.nav-links li a {
   text-decoration: none;
   color: white;
 }
@@ -56,20 +61,38 @@ h1, h2, h3, h4, h5 {
 /* 2. Search Form */
 
 .searchForm {
-  text-align: center;
-  margin: 30px 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  /* text-align: center; */
+  margin: 30px auto;
+  padding: 30px;
+  max-width: 1100px;
+  background-color: white;
 }
 
 .searchForm form input {
-  padding: 10px 15px;
+  padding: 15px 20px;
+  border-radius: 5px 0 0 5px;
+  border: none;
+  background-color: #eaeaea;
+}
+
+.searchForm form input:focus,
+select:focus {
+  outline: none;
 }
 
 .searchForm form select {
-  padding: 10px;
+  padding: 14.5px 20px;
+  border: none;
+  background-color: #3888ff;
+  color: white;
 }
 
 .searchForm form button {
-  padding: 10px 15px;
+  padding: 14px 20px;
   margin-left: 5px;
   background-color: #3888ff;
   color: white;
@@ -85,21 +108,31 @@ h1, h2, h3, h4, h5 {
   background-color: #0066fe;
 }
 
+
+.error-message {
+  text-align: center;
+  color: #ff7676;
+  margin: 20px 0 0;
+  background-color: #620000;
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+
 /* 3. Content */
 .content-container {
- display: flex;
-    max-width: 1100px;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: center;
-    /* width: 100%; */
-    margin: 0 auto;
-    gap: 20px;
-    background-color: #2b86ff;
-    padding: 40px 0;
-    border-radius: 15px;
-      box-shadow: 2px 3px 10px 1px #00000099;
+  display: flex;
+  max-width: 1100px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  /* width: 100%; */
+  margin: 0 auto;
+  gap: 20px;
+  background-color: #ffffff;
+  padding: 40px 0;
+  border-radius: 15px;
+  /* box-shadow: 2px 3px 10px 1px #00000099; */
 }
 
 .match-card {
@@ -107,19 +140,20 @@ h1, h2, h3, h4, h5 {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 30px;
   padding: 10px 15px;
   margin-bottom: 15px;
   border-radius: 10px;
-  box-shadow: 2px 3px 10px 1px #00000099;
+  box-shadow: 0 0 3px 1px #00000099;
 }
 
 .match-card img {
-  width: 60px;
-  height: 60px;
+  width: 65px;
+  height: 65px;
   object-fit: cover;
   display: block;
   border-radius: 100%;
+  border: 3px solid white;
 }
 
 .match-card h2 {
@@ -129,27 +163,32 @@ h1, h2, h3, h4, h5 {
 .match-card ul {
   margin: 0;
   list-style: none;
+  padding: 10px 20px;
+  color: white;
+  border-radius: 10px;
 }
 
 /* Player information */
 
-.player-info{
+.player-info {
   background-color: #0f0f0f;
-    padding: 15px 30px;
-    border-radius: 10px;
-    color: white;
-    /* display: flex; */
+  padding: 15px 30px;
+  border-radius: 10px;
+  color: white;
+  /* display: flex; */
 }
 
-.player-info h1{
-      margin-top: 5px;
+.player-info h1 {
+  margin-top: 5px;
 }
 
 
 /* 3. Ranked Solo Card */
 
-.ranked-card h3, h2, p{
-margin: 5px 0;
+.ranked-card h3,
+h2,
+p {
+  margin: 5px 0;
 }
 
 .rank-emblem-wrapper {
@@ -166,6 +205,7 @@ margin: 5px 0;
   height: auto;
   object-fit: contain;
 }
+
 /* Loading icon */
 
 .loader {
@@ -188,4 +228,3 @@ margin: 5px 0;
     transform: rotate(360deg);
   }
 }
-

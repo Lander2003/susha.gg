@@ -1,4 +1,4 @@
-import { useState} from 'react'
+import { useState } from 'react'
 import Navbar from './components/Navbar'
 import Search from './components/Search'
 import Content from './components/Content'
@@ -48,12 +48,12 @@ function App() {
     setPlayerData(newData);
   }
 
-  function updateLoadingState(loadingState: boolean){
+  function updateLoadingState(loadingState: boolean) {
     setIsLoading(loadingState);
   }
 
-  function setErrorMessage(errorMessage: string){
-      setError(errorMessage);
+  function setErrorMessage(errorMessage: string) {
+    setError(errorMessage);
   }
 
 
@@ -61,11 +61,14 @@ function App() {
     <>
       <Navbar />
       <main>
-        <Search updateData={updateData} updateLoadingState={updateLoadingState} updateError={setErrorMessage}/>
-        {error && <h1 style={{textAlign: "center", color: "#f42b2b"}}>{error}</h1>}
-      
-         {isLoading && <div className="loader"></div>} 
-         {!isLoading && playerData && <Content playerData={playerData} />}
+        <div className="searchForm">
+
+          <Search updateData={updateData} updateLoadingState={updateLoadingState} updateError={setErrorMessage} />
+          {error && <p className="error-message">{error}</p>}
+        </div>
+
+        {isLoading && <div className="loader"></div>}
+        {!isLoading && playerData && <Content playerData={playerData} />}
 
       </main>
     </>

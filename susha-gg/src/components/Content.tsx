@@ -33,7 +33,7 @@ export default function Content({ playerData }: ContentProps) {
               <div>
                 <h2>{match.champion}</h2>
               </div>
-              <ul>
+              <ul style={match.win ? {backgroundColor: "#4ba657"} : {backgroundColor: "rgb(148, 82, 82)"}}>
                 <li>KDA: {match.kills}/{match.deaths}/{match.assists}</li>
                 <li>Role: {match.role}</li>
                 <li>Game duration: {Math.floor(match.duration / 60)} minutes</li>

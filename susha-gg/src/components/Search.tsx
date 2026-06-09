@@ -21,8 +21,14 @@ const [region, setRegion] = useState("EUNE");
 async function handleSubmit(e: React.FormEvent){
     // updateData();
     updateError("");
-    updateLoadingState(true);
     e.preventDefault();
+ if (gameId.trim() === "") {
+    updateError(
+      "Form is empty, please put a name and tag, example: Carnivore#Beef"
+    );
+    return;
+  }
+   updateLoadingState(true);
 
     try {
         const parameters = new URLSearchParams({
@@ -50,7 +56,7 @@ async function handleSubmit(e: React.FormEvent){
 
 
     return(
-        <div className="searchForm">
+        <>
            <h1>Search for a player</h1>
            <form onSubmit={handleSubmit} action="">
             <input type="text" 
@@ -67,6 +73,6 @@ async function handleSubmit(e: React.FormEvent){
             </select>
             <button type="submit">Search user</button>
            </form>
-        </div>
+        </>
     )
 }
