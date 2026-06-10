@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import rateLimit from "express-rate-limit";
+import helmet from "helmet";
 
 dotenv.config();
 
@@ -8,8 +10,26 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
-app.use(cors());
+const globalLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 100,
+});
+
+app.use(helmet());
+app.use(globalLimiter);
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+  })
+);
 app.use(express.json());
+const getPlayerLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: {
+    error: "Too many searches. Please try again later.",
+  },
+});
 
 type Region = "NA" | "BR" | "OCE" | "EUNE" | "EUW" | "KR";
 
@@ -38,7 +58,7 @@ function isRegion(value: string): value is Region {
 async function riotFetch(url: string) {
   const response = await fetch(url, {
     headers: {
-      "X-Riot-Token": process.env.RIOT_API_KEY!,
+      "X-Riot-Token": RIOT_API_KEY!,
     },
   });
 
@@ -55,11 +75,23 @@ async function riotFetch(url: string) {
   return response.json();
 }
 
-app.get("/getPlayer", async (req, res) => {
+app.get("/getPlayer", getPlayerLimiter, async (req, res) => {
 
   try {
     const gameId = String(req.query.gameid || "");
     const region = String(req.query.region || "").toUpperCase();
+
+    if (gameId.length < 3 || gameId.length > 30) {
+      return res.status(400).json({
+      error: "Invalid Riot ID",
+      });
+    }
+
+    if (!gameId.includes("#")) {
+     return res.status(400).json({
+     error: "Invalid Riot ID format",
+     });
+    }
 
     const [gameName, gameTag] = gameId.split("#");
 
@@ -168,7 +200,7 @@ try {
     };
   })
 );
-   console.log(simplifiedMatches);
+     console.log("Request Sent!");
     res.json({
       gameName,
       gameTag,
