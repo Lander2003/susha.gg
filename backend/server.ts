@@ -120,7 +120,7 @@ try {
       `https://${routingRegion}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?start=0&count=10`
     );
 
-    const simplifiedMatches = await Promise.all(
+   const simplifiedMatches = await Promise.all(
   matchIds.map(async (matchId: string) => {
     const singleMatch = await riotFetch(
       `https://${routingRegion}.api.riotgames.com/lol/match/v5/matches/${matchId}`
@@ -134,21 +134,41 @@ try {
 
     return {
       matchId: singleMatch.metadata.matchId,
-      champion: searchedPlayer.championName,
-      kills: searchedPlayer.kills,
-      deaths: searchedPlayer.deaths,
-      assists: searchedPlayer.assists,
-      win: searchedPlayer.win,
-      role: searchedPlayer.teamPosition,
-      cs:
-        searchedPlayer.totalMinionsKilled +
-        searchedPlayer.neutralMinionsKilled,
       duration: singleMatch.info.gameDuration,
       queueId: singleMatch.info.queueId,
+
+      searchedPlayer: {
+        puuid: searchedPlayer.puuid,
+        champion: searchedPlayer.championName,
+        kills: searchedPlayer.kills,
+        deaths: searchedPlayer.deaths,
+        assists: searchedPlayer.assists,
+        win: searchedPlayer.win,
+        role: searchedPlayer.teamPosition,
+        cs:
+          searchedPlayer.totalMinionsKilled +
+          searchedPlayer.neutralMinionsKilled,
+      },
+
+      players: singleMatch.info.participants.map((participant: any) => ({
+        puuid: participant.puuid,
+        gameName: participant.riotIdGameName,
+        gameTag: participant.riotIdTagline,
+        champion: participant.championName,
+        kills: participant.kills,
+        deaths: participant.deaths,
+        assists: participant.assists,
+        win: participant.win,
+        role: participant.teamPosition,
+        teamId: participant.teamId,
+        cs:
+          participant.totalMinionsKilled +
+          participant.neutralMinionsKilled,
+      })),
     };
   })
 );
-
+   console.log(simplifiedMatches);
     res.json({
       gameName,
       gameTag,

@@ -145,6 +145,7 @@ select:focus {
   margin-bottom: 15px;
   border-radius: 10px;
   box-shadow: 0 0 3px 1px #00000099;
+
 }
 
 .match-card img {
@@ -166,6 +167,32 @@ select:focus {
   padding: 10px 20px;
   color: white;
   border-radius: 10px;
+}
+
+.btn-show{
+  padding: 10px 15px;
+  background-color: #3888ff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+/* Players */
+
+.match-players{
+  padding: 15px 15px;
+  padding-bottom: 30px;
+  margin-bottom: 15px;
+}
+
+
+.match-players .match-player span{
+  margin: 10px;
+}
+.match-players .match-player{
+  margin: 10px;
+  padding: 10px;
+  background-color: white;
 }
 
 /* Player information */

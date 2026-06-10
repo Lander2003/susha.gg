@@ -6,17 +6,26 @@ import Content from './components/Content'
 import './App.css'
 
 
-type SimplifiedMatch = {
-  matchId: string;
+type MatchPlayer = {
+  puuid: string;
+  gameName: string;
+  gameTag: string;
   champion: string;
   kills: number;
   deaths: number;
   assists: number;
   win: boolean;
   role: string;
+  teamId: number;
   cs: number;
+};
+
+type SimplifiedMatch = {
+  matchId: string;
   duration: number;
   queueId: number;
+  searchedPlayer: MatchPlayer;
+  players: MatchPlayer[];
 };
 
 export type PlayerData = {
