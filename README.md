@@ -67,5 +67,6 @@ This project was built to practice full-stack development with React, TypeScript
 
 ## Screenshots
 
-![PlayerData](./screenshots/screenshot.png)
-![Error1](./screenshots/screenshot-1.png)
+![PlayerData](./screenshots/screenshot1.png)
+![GameData](./screenshots/screenshot2.png)
+![Error1](./screenshots/screenshot3.png)

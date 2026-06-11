@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { searchPlayerRequest } from "../api/searchPlayer";
 
 import type { PlayerData } from "../App";
 
@@ -18,40 +19,51 @@ const [region, setRegion] = useState("EUNE");
 // }, [ign, region])
 
 
-async function handleSubmit(e: React.FormEvent){
-    // updateData();
-    updateError("");
-    e.preventDefault();
- if (gameId.trim() === "") {
+async function handleSubmit(e: React.FormEvent) {
+  e.preventDefault();
+
+  updateError("");
+
+  if (gameId.trim() === "") {
     updateError(
-      "Form is empty, please put a name and tag, example: Carnivore#Beef"
+      "Form is empty. Enter a Riot ID such as Carnivore#Beef."
     );
     return;
   }
-   updateLoadingState(true);
 
-    try {
-        const parameters = new URLSearchParams({
-        gameid: gameId,
-        region: region,
-    });
+  const parts = gameId.split("#");
 
-    // console.log(paramaters.toString());
+  if (parts.length !== 2) {
+    updateError("Invalid Riot ID. Use the format Name#Tag.");
+    return;
+  }
 
-    const response = await fetch(`http://localhost:3000/getPlayer?${parameters.toString()}`);
-    console.log(`{http://localhost:3000/getPlayer?${parameters.toString()}`)
-    const data = await response.json();
+  const [gameName, gameTag] = parts;
 
-    if(data.error){
-        console.log(data.error);
-        updateError(data.error);
-    } else {
-    console.log(data);
+  if (!gameName.trim() || !gameTag.trim()) {
+    updateError("Invalid Riot ID. Use the format Name#Tag.");
+    return;
+  }
+
+  updateLoadingState(true);
+
+  try {
+    const data = await searchPlayerRequest(
+      gameName.trim(),
+      gameTag.trim(),
+      region
+    );
+
     updateData(data);
-    }
-    } finally {
-        updateLoadingState(false);
-    }
+  } catch (error) {
+    updateError(
+      error instanceof Error
+        ? error.message
+        : "Something went wrong while fetching the player."
+    );
+  } finally {
+    updateLoadingState(false);
+  }
 }
 
 

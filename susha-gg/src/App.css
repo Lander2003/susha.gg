@@ -121,7 +121,7 @@ select:focus {
 /* 3. Content */
 .content-container {
   display: flex;
-  max-width: 1100px;
+  max-width: 1200px;
   flex-direction: row;
   flex-wrap: wrap;
   align-items: flex-start;
@@ -179,20 +179,58 @@ select:focus {
 
 /* Players */
 
+.team-section{
+  padding: 6px;
+}
+
+.team-section h3{
+  text-align: center;
+}
+
 .match-players{
-  padding: 15px 15px;
+  padding: 15px 0px;
   padding-bottom: 30px;
-  margin-bottom: 15px;
+  /* margin-bottom: 15px; */
+  display: flex;
 }
 
-
-.match-players .match-player span{
-  margin: 10px;
-}
 .match-players .match-player{
   margin: 10px;
-  padding: 10px;
-  background-color: white;
+  padding: 7px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  border-radius: 20px;
+    background-color: white;
+}
+
+.match-players .match-player span{
+  margin: 0 10px;
+  font-size: 10px;
+}
+
+.match-players .match-player img{
+  width: 25px;
+  border-radius: 100%;
+}
+
+.player-name {
+  border: none;
+  background-color: #4793ff;
+  cursor: pointer;
+  border-radius: 10px;
+  color: white;
+  /* margin: 0 10px; */
+}
+
+.load-button{
+  padding: 10px 15px;
+  background-color: #3888ff;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  color: white;
 }
 
 /* Player information */
@@ -212,6 +250,18 @@ select:focus {
 
 /* 3. Ranked Solo Card */
 
+.player-info h1{
+  font-size: 1.4rem;
+}
+
+.player-info h2{
+  font-size: 1.2rem;
+}
+
+.player-info h3{
+  font-size: 1.1rem;
+}
+
 .ranked-card h3,
 h2,
 p {
@@ -219,8 +269,8 @@ p {
 }
 
 .rank-emblem-wrapper {
-  width: 160px;
-  height: 120px;
+  width: 120px;
+  height: 70px;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -228,7 +278,7 @@ p {
 }
 
 .rank-emblem {
-  width: 600px;
+  width: 400px;
   height: auto;
   object-fit: contain;
 }

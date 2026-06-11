@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 
+import { getSimplifiedMatches } from "./getSimplifiedMatches.js";
+
 dotenv.config();
 
 const app = express();
@@ -148,77 +150,108 @@ try {
 
 
     // 2. Get recent match IDs
-    const matchIds = await riotFetch(
-      `https://${routingRegion}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?start=0&count=10`
-    );
+    // 2. Get recent matches
+const start = 0;
+const count = 5;
 
-   const simplifiedMatches = await Promise.all(
-  matchIds.map(async (matchId: string) => {
-    const singleMatch = await riotFetch(
-      `https://${routingRegion}.api.riotgames.com/lol/match/v5/matches/${matchId}`
-    );
+const { matchIds, simplifiedMatches } =
+  await getSimplifiedMatches({
+    puuid,
+    routingRegion,
+    start,
+    count,
+    riotFetch,
+  });
 
-    const searchedPlayer = singleMatch.info.participants.find(
-      (participant: any) => participant.puuid === puuid
-    );
+console.log("Request Sent!");
 
-    if (!searchedPlayer) return null;
+return res.json({
+  puuid,
+  gameName,
+  gameTag,
+  region,
+  rankedSolo,
+  simplifiedMatches,
+  pagination: {
+    start,
+    count,
+    nextStart: start + matchIds.length,
+    hasMore: matchIds.length === count,
+  },
+});
+  } catch (error: any) {
+    if (error.status === 404) {
+      return res.status(404).json({
+        error: "No matches found",
+      });
+    }
 
-    return {
-      matchId: singleMatch.metadata.matchId,
-      duration: singleMatch.info.gameDuration,
-      queueId: singleMatch.info.queueId,
+    return res.status(500).json({
+      error: "Something went wrong while fetching matches",
+    });
+  }
+});
 
-      searchedPlayer: {
-        puuid: searchedPlayer.puuid,
-        champion: searchedPlayer.championName,
-        kills: searchedPlayer.kills,
-        deaths: searchedPlayer.deaths,
-        assists: searchedPlayer.assists,
-        win: searchedPlayer.win,
-        role: searchedPlayer.teamPosition,
-        cs:
-          searchedPlayer.totalMinionsKilled +
-          searchedPlayer.neutralMinionsKilled,
-      },
+app.get("/getMatches", getPlayerLimiter, async (req, res) => {
+  try {
+    const puuid = String(req.query.puuid || "").trim();
+    const region = String(req.query.region || "").toUpperCase();
 
-      players: singleMatch.info.participants.map((participant: any) => ({
-        puuid: participant.puuid,
-        gameName: participant.riotIdGameName,
-        gameTag: participant.riotIdTagline,
-        champion: participant.championName,
-        kills: participant.kills,
-        deaths: participant.deaths,
-        assists: participant.assists,
-        win: participant.win,
-        role: participant.teamPosition,
-        teamId: participant.teamId,
-        cs:
-          participant.totalMinionsKilled +
-          participant.neutralMinionsKilled,
-      })),
-    };
-  })
-);
-     console.log("Request Sent!");
-    res.json({
-      gameName,
-      gameTag,
-      region,
-      rankedSolo,
-      matchIds,
+    const requestedStart = Number(req.query.start);
+    const requestedCount = Number(req.query.count);
+
+    const start =
+      Number.isInteger(requestedStart) && requestedStart >= 0
+        ? requestedStart
+        : 0;
+
+    const count =
+      Number.isInteger(requestedCount) && requestedCount >= 1
+        ? Math.min(requestedCount, 10)
+        : 5;
+
+    if (!puuid || puuid.length > 100) {
+      return res.status(400).json({
+        error: "Invalid player identifier",
+      });
+    }
+
+    if (!isRegion(region)) {
+      return res.status(400).json({
+        error: "Invalid region",
+      });
+    }
+
+    const routingRegion = routingMap[region];
+
+    const { matchIds, simplifiedMatches } =
+      await getSimplifiedMatches({
+        puuid,
+        routingRegion,
+        start,
+        count,
+        riotFetch,
+      });
+    console.log("getMatches Accessed!");
+    return res.json({
       simplifiedMatches,
+      pagination: {
+        start,
+        count,
+        nextStart: start + matchIds.length,
+        hasMore: matchIds.length === count,
+      },
     });
   } catch (error: any) {
-    if(error.status == 404){
+    if (error.status === 404) {
       return res.status(404).json({
-      error: "Results not found for this player",
-    });
-     }else {
-     return res.status(500).json({
-      error: "Something went wrong while fetching player data",
-    });
+        error: "No matches found",
+      });
     }
+
+    return res.status(500).json({
+      error: "Something went wrong while fetching matches",
+    });
   }
 });
 

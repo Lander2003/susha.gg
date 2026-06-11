@@ -29,6 +29,7 @@ type SimplifiedMatch = {
 };
 
 export type PlayerData = {
+  puuid: string;
   gameName: string;
   gameTag: string;
   region: string;
@@ -42,6 +43,12 @@ export type PlayerData = {
   } | null;
   matchIds: string[];
   simplifiedMatches: SimplifiedMatch[];
+  pagination: {
+    start: number;
+    count: number;
+    nextStart: number;
+    hasMore: boolean;
+  };
 };
 
 
@@ -77,7 +84,7 @@ function App() {
         </div>
 
         {isLoading && <div className="loader"></div>}
-        {!isLoading && playerData && <Content playerData={playerData} />}
+        {!isLoading && playerData && <Content playerData={playerData} updateData={updateData} updateLoadingState={updateLoadingState} />}
 
       </main>
     </>
