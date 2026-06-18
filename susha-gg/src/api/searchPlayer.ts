@@ -10,8 +10,10 @@ export async function searchPlayerRequest(
     region,
   });
 
+  const API_URL = import.meta.env.VITE_API_URL;
+
   const response = await fetch(
-    `http://localhost:3000/getPlayer?${parameters.toString()}`
+    `${API_URL}/getPlayer?${parameters.toString()}`
   );
 
   const data = await response.json();
