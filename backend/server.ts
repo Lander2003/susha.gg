@@ -17,11 +17,16 @@ const globalLimiter = rateLimit({
   max: 100,
 });
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://susha-gg.vercel.app",
+];
+
 app.use(helmet());
 app.use(globalLimiter);
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: allowedOrigins,
   })
 );
 app.use(express.json());
