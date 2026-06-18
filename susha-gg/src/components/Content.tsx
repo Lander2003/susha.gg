@@ -169,7 +169,7 @@ const response = await fetch(
               {blueTeam.map((player) => {
                 const champImageLink =
                   `https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/${player.champion}.png`;
-
+                   const displayName = player.gameName ? (player.gameName.length > 12 ? player.gameName.slice(0, 12) + '...' : player.gameName) : "Guest";
                 return (
                   <div className="match-player" key={player.puuid}>
                     <img
@@ -180,11 +180,12 @@ const response = await fetch(
                     <button
   type="button"
   className="player-name"
+  title={player.gameName + "#" + player.gameTag}
   onClick={() =>
     searchMatchPlayer(player.gameName, player.gameTag)
   }
 >
-  {player.gameName}#{player.gameTag}
+  {displayName}
 </button>
 
                     <span>
@@ -213,6 +214,7 @@ const response = await fetch(
               {redTeam.map((player) => {
                 const champImageLink =
                   `https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/${player.champion}.png`;
+                  const displayName = player.gameName ? (player.gameName.length > 12 ? player.gameName.slice(0, 12) + '...' : player.gameName) : "Guest";
 
                 return (
                   <div className="match-player" key={player.puuid}>
@@ -223,12 +225,13 @@ const response = await fetch(
 
                     <button
   type="button"
+  title={player.gameName + "#" + player.gameTag}
   className="player-name"
   onClick={() =>
     searchMatchPlayer(player.gameName, player.gameTag)
   }
 >
-  {player.gameName}#{player.gameTag}
+  {displayName}
 </button>
 
                     <span>

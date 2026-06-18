@@ -30,7 +30,7 @@ export default function RankedSoloCard({ rankedSolo }: RankedSoloCardProps) {
       </h3>
       <p>{rankedSolo.lp} LP</p>
       <p>
-        {rankedSolo.wins}W / {rankedSolo.losses}L
+        {rankedSolo.wins}W / {rankedSolo.losses}L {Math.round((rankedSolo.wins / (rankedSolo.wins + rankedSolo.losses) * 100))}% Winrate
       </p>
       <p>Total games: {rankedSolo.totalGames}</p>
     </div>

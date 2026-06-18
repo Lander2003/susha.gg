@@ -144,7 +144,7 @@ select:focus {
   padding: 10px 15px;
   margin-bottom: 15px;
   border-radius: 10px;
-  box-shadow: 0 0 3px 1px #00000099;
+  /* box-shadow: 0 0 3px 1px #00000099; */
 
 }
 
@@ -198,7 +198,7 @@ select:focus {
   margin: 10px;
   padding: 7px 10px;
   display: flex;
-  justify-content: space-between;
+  justify-content: start;
   align-items: center;
   gap: 10px;
   border-radius: 20px;
@@ -236,7 +236,7 @@ select:focus {
 /* Player information */
 
 .player-info {
-  background-color: #0f0f0f;
+  background-color: #19468a;
   padding: 15px 30px;
   border-radius: 10px;
   color: white;
@@ -294,6 +294,66 @@ p {
 
   animation: spin 1s ease infinite;
   margin: 2rem auto;
+}
+
+/* About me */
+
+.about-me {
+  margin: 20px auto;
+  padding: 40px 40px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 30px;
+  align-items: center;
+  background-color: white;
+  max-width: 900px;
+}
+
+.about-me img {
+  width: 230px;
+  height: 230px;
+}
+
+.about-me div {
+  flex: 1;
+  min-width: 560px;
+}
+
+.about-me div h1{
+  margin: 8px 0;
+}
+
+.about-me div button{
+  margin-top: 10px;
+  margin-right: 8px;
+}
+
+.about-me div button a {
+  color: white;
+  text-decoration: none;
+}
+/* Utility */
+
+.btn {
+  padding: 10px 20px;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.github {
+  background-color: #151b23;
+}
+
+.linkedin {
+  background-color: #0a66c2;
+}
+
+.donate {
+  background-color: #e68c00;
 }
 
 @keyframes spin {

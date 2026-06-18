@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Routes, Route } from "react-router-dom";
+import AboutMe from "./components/AboutMe";
 import Navbar from './components/Navbar'
 import Search from './components/Search'
 import Content from './components/Content'
@@ -73,22 +75,42 @@ function App() {
   }
 
 
-  return (
-    <>
-      <Navbar />
-      <main>
-        <div className="searchForm">
+   return (
+  <>
+    <Navbar />
 
-          <Search updateData={updateData} updateLoadingState={updateLoadingState} updateError={setErrorMessage} />
-          {error && <p className="error-message">{error}</p>}
-        </div>
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <main>
+            <div className="searchForm">
+              <Search
+                updateData={updateData}
+                updateLoadingState={updateLoadingState}
+                updateError={setErrorMessage}
+              />
+              {error && <p className="error-message">{error}</p>}
+            </div>
 
-        {isLoading && <div className="loader"></div>}
-        {!isLoading && playerData && <Content playerData={playerData} updateData={updateData} updateLoadingState={updateLoadingState} />}
+            {isLoading && <div className="loader"></div>}
 
-      </main>
-    </>
-  )
+            {!isLoading && playerData && (
+              <Content
+                playerData={playerData}
+                updateData={updateData}
+                updateLoadingState={updateLoadingState}
+              />
+            )}
+          </main>
+        }
+      />
+
+      <Route path="/about-me" element={
+        <AboutMe />} />
+    </Routes>
+  </>
+);
 }
 
 export default App;
