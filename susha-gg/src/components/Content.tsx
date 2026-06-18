@@ -14,7 +14,7 @@ export default function Content({ playerData, updateData, updateLoadingState }: 
 
   const [openMatchId, setOpenMatchId] = useState<string | null>(null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-
+  const API_URL = import.meta.env.VITE_API_URL;
   async function searchMatchPlayer(
   gameName: string,
   gameTag: string
@@ -53,7 +53,7 @@ export default function Content({ playerData, updateData, updateLoadingState }: 
 });
 
 const response = await fetch(
-  `http://localhost:3000/getMatches?${parameters.toString()}`
+  `${API_URL}/getMatches?${parameters.toString()}`
 );
 
     const data: PlayerData = await response.json();
