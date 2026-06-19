@@ -168,8 +168,6 @@ const { matchIds, simplifiedMatches } =
     riotFetch,
   });
 
-console.log("Request Sent!");
-
 return res.json({
   puuid,
   gameName,
@@ -237,7 +235,7 @@ app.get("/getMatches", getPlayerLimiter, async (req, res) => {
         count,
         riotFetch,
       });
-    console.log("getMatches Accessed!");
+    
     return res.json({
       simplifiedMatches,
       pagination: {

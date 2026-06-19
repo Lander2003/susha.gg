@@ -70,10 +70,12 @@ h5 {
   padding: 30px;
   max-width: 1100px;
   background-color: white;
+  text-align: center;
 }
 
 .searchForm form input {
   padding: 15px 20px;
+  margin-bottom: 5px;
   border-radius: 5px 0 0 5px;
   border: none;
   background-color: #eaeaea;
@@ -140,8 +142,8 @@ select:focus {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 30px;
-  padding: 10px 15px;
+  gap: 10px;
+  padding: 10px 20px;
   margin-bottom: 15px;
   border-radius: 10px;
   /* box-shadow: 0 0 3px 1px #00000099; */
@@ -308,6 +310,7 @@ p {
   gap: 30px;
   align-items: center;
   background-color: white;
+  overflow-wrap: break-word; 
   max-width: 900px;
 }
 
@@ -318,7 +321,7 @@ p {
 
 .about-me div {
   flex: 1;
-  min-width: 560px;
+  /* min-width: 280px; */
 }
 
 .about-me div h1{
@@ -355,6 +358,47 @@ p {
 .donate {
   background-color: #e68c00;
 }
+
+/* Media Queries */
+
+@media (max-width: 650px) {
+       .player-info{
+        width: 80%;
+       }
+      
+      .match-card {
+        flex-direction: column;
+        gap: 7px;
+      }
+
+      .match-players {
+        flex-direction: column;
+      }
+
+      .about-me {
+        flex-direction: column;
+      }
+
+      .navbar {
+        gap: 0;
+        padding: 5px;
+        display: block;
+        text-align: center;
+      }
+
+      .navbar h1 {
+        margin: 4px 0;
+      }
+
+      .navbar .nav-links {
+        /* display: flex; */
+        justify-content: center;
+        padding: 0;
+      }
+}
+
+
+/* Loading button */
 
 @keyframes spin {
   from {
