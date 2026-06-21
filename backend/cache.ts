@@ -5,6 +5,8 @@ type CacheEntry<T> = {
 
 const cache = new Map<string, CacheEntry<unknown>>();
 
+const MAX_CACHE_ITEMS = 500;
+
 export function getFromCache<T>(key: string): T | null {
   const cachedItem = cache.get(key);
 
@@ -25,6 +27,14 @@ export function setCache<T>(
   data: T,
   ttlMs: number
 ) {
+    if (cache.size >= MAX_CACHE_ITEMS) {
+        const oldestKey = cache.keys().next().value;
+
+    if (oldestKey) {
+      cache.delete(oldestKey);
+    }
+  }
+
   cache.set(key, {
     data,
     expiresAt: Date.now() + ttlMs,

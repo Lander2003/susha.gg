@@ -30,18 +30,26 @@ app.use(
     origin: allowedOrigins,
   })
 );
-app.use(express.json());
+app.use(express.json({ limit: "10kb" }));
 const getPlayerLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
   message: {
-    error: "Too many searches. Please try again later.",
+    error: "Too many player searches. Please try again later.",
   },
-  
 });
+
+const getMatchesLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 40,
+  message: {
+    error: "Too many match requests. Please try again later.",
+  },
+});
+
 const leaderboardLimiter = rateLimit({
   windowMs: 5 * 60 * 1000,
-  max: 30,
+  max: 60,
   message: {
     error: "Too many leaderboard requests. Please try again later.",
   },
@@ -201,7 +209,7 @@ return res.json({
   }
 });
 
-app.get("/getMatches", getPlayerLimiter, async (req, res) => {
+app.get("/getMatches", getMatchesLimiter, async (req, res) => {
   try {
     const puuid = String(req.query.puuid || "").trim();
     const region = String(req.query.region || "").toUpperCase();
