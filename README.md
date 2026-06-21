@@ -1,31 +1,30 @@
 # susha.gg
 
-**susha.gg** is a League of Legends match history web application built with React, TypeScript, Node.js, and Express.
-Users can search for a Riot player by Riot ID, view ranked solo queue information, inspect recent matches, expand each match to see all players divided by team, and click any player inside a match to search their profile.
+A full-stack League of Legends player lookup and match history web application built with React, TypeScript, Node.js, Express, and the Riot Games API.
 
-## Live Demo
-
-Frontend: https://susha-gg.vercel.app
+Live site: https://susha-gg.vercel.app
 Backend API: https://susha-gg.onrender.com
 
-> Note: The backend is hosted on Render’s free tier, so the first request may take a few seconds if the server has been inactive.
+## Overview
+
+susha.gg allows users to search for a League of Legends player by Riot ID and region, view ranked solo queue information, inspect recent match history, expand individual matches to see all participants, and browse a regional Challenger leaderboard.
+
+The project was built as a full-stack application with a strong focus on clean API design, backend security, Riot API integration, caching, rate limiting, and responsive frontend UI.
 
 ## Features
 
-* Search players by Riot ID, for example `Hide on bush#KR1`
-* Select supported regions
-* Display ranked solo queue information
-* Display recent match history
-* Show champion, KDA, role, CS, game duration, and match result
-* Expand each match to view all participants
-* Divide match participants by Blue Team and Red Team
-* Display team-level Victory / Defeat result
-* Click any player inside a match to search their account
-* Load more matches with pagination
-* Separate backend route for loading additional matches without repeating unnecessary account lookups
-* About Me page with personal links
-* Responsive React frontend
-* Deployed frontend and backend
+* Search players by Riot ID and region
+* Display ranked solo queue data
+* View recent match history
+* Expand matches to inspect all participants
+* Navigate between players from match history
+* Regional Challenger leaderboard
+* Leaderboard pagination
+* In-memory caching for leaderboard data
+* In-memory caching for match details
+* Backend rate limiting to protect Riot API usage
+* Secure environment variable handling
+* Production frontend and backend deployments
 
 ## Tech Stack
 
@@ -44,229 +43,205 @@ Backend API: https://susha-gg.onrender.com
 * Express.js
 * TypeScript
 * Riot Games API
+* Helmet
+* CORS
+* Express Rate Limit
+* In-memory caching
 * Render deployment
 
-### Security / Production Improvements
+## Riot APIs Used
 
-* Riot API key stored only on the backend
-* Environment variables for frontend and backend configuration
-* CORS restricted to allowed frontend origins
-* Helmet security headers
-* Rate limiting for API protection
-* Input validation for Riot ID and region
-* Separate `/getMatches` route for pagination efficiency
-* No Riot API key exposed to the browser
+* Riot Account API
+* League API
+* Match API
 
-## Project Structure
+## Architecture
 
 ```txt
-susha.gg/
-├── frontend/
-│   ├── src/
-│   │   ├── api/
-│   │   │   └── searchPlayer.ts
-│   │   ├── components/
-│   │   │   ├── AboutMe.tsx
-│   │   │   ├── Content.tsx
-│   │   │   ├── Navbar.tsx
-│   │   │   ├── RankedSoloCard.tsx
-│   │   │   └── Search.tsx
-│   │   ├── App.tsx
-│   │   └── main.tsx
-│   ├── public/
-│   ├── package.json
-│   └── vite.config.ts
-│
-├── backend/
-│   ├── server.ts
-│   ├── getSimplifiedMatches.ts
-│   ├── package.json
-│   └── tsconfig.json
+Frontend React App
+        |
+        | HTTP requests
+        v
+Express TypeScript Backend
+        |
+        | Secure Riot API requests
+        v
+Riot Games API
 ```
+
+The Riot API key is stored only on the backend and is never exposed to the browser.
 
 ## API Routes
 
 ### `GET /getPlayer`
 
-Fetches player account data, ranked solo queue data, and the first set of recent matches.
+Fetches player account data, ranked solo queue information, and recent simplified matches.
 
-Example:
+Example query:
 
 ```txt
-/getPlayer?gameid=Hide%20on%20bush%23KR1&region=KR
+/getPlayer?gameid=Name%23Tag&region=EUW
 ```
-
-Returns:
-
-* Player Riot ID
-* Region
-* PUUID
-* Ranked solo queue data
-* First page of simplified match data
-* Pagination metadata
 
 ### `GET /getMatches`
 
-Fetches additional matches for an already searched player using their PUUID.
+Fetches additional paginated match history for a player.
 
-Example:
+Example query:
 
 ```txt
-/getMatches?puuid=PLAYER_PUUID&region=KR&start=5&count=5
+/getMatches?puuid=PLAYER_PUUID&region=EUW&start=5&count=5
 ```
 
-Returns:
+### `GET /leaderboard`
 
-* Additional simplified matches
-* Updated pagination metadata
+Fetches a regional Challenger solo queue leaderboard.
 
-This route avoids repeating unnecessary Riot account and ranked-data requests when loading more matches.
+Example query:
 
-## Environment Variables
-
-### Frontend `.env`
-
-```env
-VITE_API_URL=http://localhost:3000
+```txt
+/leaderboard?region=EUW&start=0&count=25
 ```
 
-For production:
+## Performance and Security
 
-```env
-VITE_API_URL=https://susha-gg.onrender.com
+The backend includes several production-focused improvements:
+
+* Riot API key stored securely in backend environment variables
+* CORS restricted to allowed frontend origins
+* Helmet middleware for safer HTTP headers
+* Global and route-specific rate limiting
+* Query parameter validation
+* In-memory leaderboard caching
+* In-memory match detail caching
+* Request size limiting
+* Generic error responses to avoid leaking sensitive details
+
+Caching helps reduce repeated Riot API calls and protects the app from unnecessary rate limit usage.
+
+## Local Development
+
+### Prerequisites
+
+* Node.js
+* Riot Games API key
+
+### Backend Setup
+
+```bash
+cd backend
+npm install
 ```
 
-### Backend `.env`
+Create a `.env` file:
 
 ```env
 RIOT_API_KEY=your_riot_api_key
 ```
 
-The Riot API key must only exist on the backend.
-
-## Running Locally
-
-### 1. Clone the repository
+Start the backend:
 
 ```bash
-git clone https://github.com/Lander2003/susha.gg.git
-cd susha.gg
-```
-
-### 2. Run the backend
-
-```bash
-cd backend
-npm install
 npm run dev
 ```
 
-The backend runs on:
+The backend runs locally on:
 
 ```txt
 http://localhost:3000
 ```
 
-### 3. Run the frontend
-
-Open a second terminal:
+### Frontend Setup
 
 ```bash
 cd frontend
 npm install
+```
+
+Create a `.env` file:
+
+```env
+VITE_API_URL=http://localhost:3000
+```
+
+Start the frontend:
+
+```bash
 npm run dev
 ```
 
-The frontend runs on:
+The frontend runs locally on:
 
 ```txt
 http://localhost:5173
 ```
 
-## Build Commands
-
-### Frontend
-
-```bash
-npm run build
-```
+## Production Environment Variables
 
 ### Backend
-
-```bash
-npm run build
-npm start
-```
-
-## Deployment
-
-### Frontend
-
-The frontend is deployed on Vercel.
-
-Vercel environment variable:
-
-```env
-VITE_API_URL=https://susha-gg.onrender.com
-```
-
-### Backend
-
-The backend is deployed on Render.
-
-Render environment variable:
 
 ```env
 RIOT_API_KEY=your_riot_api_key
 ```
 
-Render build command:
+### Frontend
 
-```bash
-npm install && npm run build
+```env
+VITE_API_URL=https://susha-gg.onrender.com
 ```
 
-Render start command:
+## Project Structure
 
-```bash
-npm start
+```txt
+susha.gg/
+  backend/
+    server.ts
+    getSimplifiedMatches.ts
+    getLeaderboard.ts
+    cache.ts
+  frontend/
+    src/
+      api/
+      components/
+      assets/
+      App.tsx
+      main.tsx
 ```
 
 ## What I Learned
 
-While building this project, I practiced:
+This project helped me practice and improve:
 
-* Building a full-stack TypeScript application
-* Working with an external API
-* Structuring Express routes
-* Protecting API keys with backend-only environment variables
-* Handling pagination efficiently
-* Implementing route-based navigation with React Router
-* Managing frontend state across multiple components
-* Deploying a separated frontend and backend
-* Using production-focused middleware such as Helmet, CORS, and rate limiting
+* Full-stack TypeScript development
+* REST API design
+* Riot Games API integration
+* Backend security best practices
+* Rate limiting and API abuse protection
+* Caching strategies for external API data
+* React Router navigation
+* State management in React
+* Frontend/backend deployment workflows
+* Environment variable management
 
 ## Future Improvements
 
-* Add MongoDB caching for Riot API responses
-* Add user accounts and saved favorite players
-* Add better loading and error UI
-* Add queue type labels instead of raw queue IDs
-* Add champion/item/rune details
-* Add Docker support for the backend
-* Add automated tests
-* Improve mobile responsiveness
-* Add custom domain
+* Persistent caching with Redis or a database
+* Stronger schema validation with Zod
+* Improved mobile leaderboard layout
+* More detailed player statistics
+* Champion images and role icons in leaderboard views
+* Background refresh for cached data
+* Better error and loading states
 
 ## Author
 
 Built by Luka Susha Mochevikj.
 
-* GitHub: https://github.com/Lander2003
-* LinkedIn: https://www.linkedin.com/in/luka-susha
+GitHub: https://github.com/Lander2003
+LinkedIn: https://www.linkedin.com/in/luka-susha
 
 ## Screenshots
 
-![PlayerData](./screenshots/screenshot1.png)
-![GameData](./screenshots/screenshot2.png)
-![Error1](./screenshots/screenshot3.png)
+![PlayerData](./screenshots/ss1.png)
+![Leaderboard](./screenshots/ss2.png)
+![About](./screenshots/ss3.png)
