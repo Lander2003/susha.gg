@@ -106,7 +106,7 @@ select:focus {
   align-items: flex-start;
   justify-content: center;
   /* width: 100%; */
-  margin: 0 auto;
+  margin: 0 auto 30px;
   gap: 20px;
   background-color: #ffffff;
   padding: 40px 0;
@@ -421,7 +421,7 @@ p {
 .footer {
   text-align: center;
   margin-top: auto;
-  padding: 15px 0;
+  padding: 10px 0;
   background-color: #0f0f0f;
   color: white;
 }
