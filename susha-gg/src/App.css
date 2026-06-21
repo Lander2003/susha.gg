@@ -47,7 +47,9 @@
   background-color: white;
   text-align: center;
 }
-
+.searchForm h1{
+  margin: 5px;
+}
 .searchForm form input {
   padding: 15px 20px;
   margin-bottom: 5px;
@@ -345,7 +347,7 @@ p {
 }
 
 .leaderboard-header h1{
-  margin: 5px;
+  margin: 5px 0 10px;
 }
 
 .leaderboard-header .region-button {
@@ -355,6 +357,10 @@ p {
   color: white;
   cursor: pointer;
   transition: .3s ease background-color;
+}
+
+.leaderboard-header .leaderboard-regions {
+  margin: 5px 0px 25px;
 }
 
 .leaderboard-header .region-button:hover {

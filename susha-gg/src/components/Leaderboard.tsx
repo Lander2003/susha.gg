@@ -100,9 +100,10 @@ export default function Leaderboard() {
             </button>
           ))}
         </div>
+
+        {error && <span className="error-message">{error}</span>}
       </section>
 
-      {error && <p className="error-message">{error}</p>}
 
       {isLoading && <div className="loader"></div>}
 
