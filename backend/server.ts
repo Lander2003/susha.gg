@@ -5,6 +5,7 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 
 import { getSimplifiedMatches } from "./getSimplifiedMatches.js";
+import { getLeaderboard } from "./getLeaderboard.js";
 
 dotenv.config();
 
@@ -36,8 +37,15 @@ const getPlayerLimiter = rateLimit({
   message: {
     error: "Too many searches. Please try again later.",
   },
+  
 });
-
+const leaderboardLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 30,
+  message: {
+    error: "Too many leaderboard requests. Please try again later.",
+  },
+});
 type Region = "NA" | "BR" | "OCE" | "EUNE" | "EUW" | "KR";
 
 const routingMap: Record<Region, string> = {
@@ -152,8 +160,6 @@ try {
   console.log("Could not fetch ranked solo data:", error);
 }
 
-
-
     // 2. Get recent match IDs
     // 2. Get recent matches
 const start = 0;
@@ -254,6 +260,58 @@ app.get("/getMatches", getPlayerLimiter, async (req, res) => {
 
     return res.status(500).json({
       error: "Something went wrong while fetching matches",
+    });
+  }
+});
+
+app.get("/leaderboard", leaderboardLimiter, async (req, res) => {
+  try {
+    const region = String(req.query.region || "").toUpperCase();
+
+    const requestedStart = Number(req.query.start);
+    const requestedCount = Number(req.query.count);
+
+    const start =
+      Number.isInteger(requestedStart) && requestedStart >= 0
+        ? requestedStart
+        : 0;
+
+    const count =
+      Number.isInteger(requestedCount) && requestedCount >= 1
+        ? Math.min(requestedCount, 50)
+        : 25;
+
+    if (!isRegion(region)) {
+      return res.status(400).json({
+        error: "Invalid region",
+      });
+    }
+
+const platformRegion = platformMap[region];
+    const leaderboard = await getLeaderboard({
+      platformRegion,
+      start,
+      count,
+      riotFetch,
+    });
+
+    return res.json({
+      region,
+      ...leaderboard,
+      pagination: {
+        start,
+        count,
+        nextStart: start + leaderboard.players.length,
+        hasMore:
+          start + leaderboard.players.length <
+          leaderboard.totalPlayers,
+      },
+    });
+  } catch (error: any) {
+    console.error("Leaderboard error:", error);
+
+    return res.status(500).json({
+      error: "Something went wrong while fetching leaderboard data",
     });
   }
 });

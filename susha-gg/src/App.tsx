@@ -3,7 +3,9 @@ import { Routes, Route } from "react-router-dom";
 import AboutMe from "./components/AboutMe";
 import Navbar from './components/Navbar'
 import Search from './components/Search'
+import Leaderboard from './components/Leaderboard'
 import Content from './components/Content'
+import Footer from "./components/Footer";
 
 import './App.css'
 
@@ -76,7 +78,7 @@ function App() {
 
 
    return (
-  <>
+  <div className="page-wrapper">
     <Navbar />
 
     <Routes>
@@ -106,10 +108,16 @@ function App() {
         }
       />
 
-      <Route path="/about-me" element={
+      <Route path="/leaderboard" element={
+        <Leaderboard />} />
+      
+
+    <Route path="/about-me" element={
         <AboutMe />} />
     </Routes>
-  </>
+
+    <Footer />
+  </div>
 );
 }
 
