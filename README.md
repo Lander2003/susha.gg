@@ -39,10 +39,10 @@ The project was built as a full-stack application with a strong focus on clean A
 ### Frontend
 
 * React
-* TypeScript
+* TypeScript/Javascript
 * Vite
 * React Router
-* CSS
+* HTML & CSS
 * Vercel deployment
 
 ### Backend
