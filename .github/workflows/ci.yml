@@ -1,0 +1,89 @@
+# Name of the workflow as it appears in the GitHub Actions UI
+name: CI
+
+# Trigger conditions: when should this workflow execute?
+on:
+  pull_request:
+    branches:
+      - main # Runs on pull requests targeting the main branch
+
+  push:
+    branches:
+      - main # Runs on direct pushes to the main branch
+
+# Restrict default runner permissions to read-only for repository security
+permissions:
+  contents: read
+
+jobs:
+  # JOB 1: Frontend Checks (React / Vite)
+  frontend:
+    name: Frontend checks
+    runs-on: ubuntu-latest # Run environment VM
+
+    # Run all commands inside the frontend subfolder
+    defaults:
+      run:
+        working-directory: susha-gg
+
+    steps:
+      # Step 1: Download repository source code into the runner container
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # Step 2: Configure Node.js runtime and enable npm module caching
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: susha-gg/package-lock.json
+
+      # Step 3: Clean install exact dependencies from package-lock.json
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 4: Run code quality & style checks
+      - name: Run linting
+        run: npm run lint
+
+      # Step 5: Verify production build compiles without errors
+      - name: Build frontend
+        env:
+          # Dummy values provided so Vite build succeeds without requiring real keys
+          VITE_API_BASE_URL: "http://localhost:3000"
+          VITE_RIOT_API_KEY: "RGAPI-dummy-key-for-ci"
+        run: npm run build
+
+
+  # JOB 2: Backend Checks (Express.js)
+  # This job runs in parallel with the frontend job to speed up CI
+  backend:
+    name: Backend checks
+    runs-on: ubuntu-latest
+
+    # Run all commands inside the backend subfolder
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      # Step 1: Download repository source code
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # Step 2: Configure Node.js runtime and enable backend npm caching
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      # Step 3: Clean install exact backend dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 4: Compile TypeScript backend code (or verify build scripts)
+      - name: Build backend
+        run: npm run build

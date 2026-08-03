@@ -11,9 +11,9 @@ export default function Leaderboard() {
   const [leaderboard, setLeaderboard] =
     useState<LeaderboardData | null>(null);
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
 
   async function fetchLeaderboard(selectedRegion: string) {
     setIsLoading(true);

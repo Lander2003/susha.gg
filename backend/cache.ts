@@ -5,7 +5,7 @@ type CacheEntry<T> = {
 
 const cache = new Map<string, CacheEntry<unknown>>();
 
-const MAX_CACHE_ITEMS = 500;
+const MAX_CACHE_ITEMS: number = 500;
 
 export function getFromCache<T>(key: string): T | null {
   const cachedItem = cache.get(key);

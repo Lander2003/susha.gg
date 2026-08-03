@@ -60,8 +60,8 @@ export type PlayerData = {
 
 function App() {
   const [playerData, setPlayerData] = useState<PlayerData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
 
 
   function updateData(newData: PlayerData) {
