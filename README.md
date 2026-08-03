@@ -1,9 +1,19 @@
 # susha.gg
 
+![CI Status](https://github.com/Lander2003/susha.gg/actions/workflows/ci.yml/badge.svg)
+![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat&logo=typescript&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-22-339933?style=flat&logo=nodedotjs&logoColor=white)
+![Express](https://img.shields.io/badge/Express-4.x-000000?style=flat&logo=express&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-Deployment-000000?style=flat&logo=vercel&logoColor=white)
+![Render](https://img.shields.io/badge/Render-Backend-46E3B7?style=flat&logo=render&logoColor=black)
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
+
 A full-stack League of Legends player lookup and match history web application built with React, TypeScript, Node.js, Express, and the Riot Games API.
 
-Live site: https://susha-gg.vercel.app
-Backend API: https://susha-gg.onrender.com
+[![Live Demo](https://img.shields.io/badge/Live_Site-susha--gg.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://susha-gg.vercel.app)
+[![Backend API](https://img.shields.io/badge/API_Status-Online-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://susha-gg.onrender.com)
 
 ## Overview
 
@@ -213,6 +223,7 @@ susha.gg/
 This project helped me practice and improve:
 
 * Full-stack TypeScript development
+* Continuous Integration (CI/CD) pipelines with GitHub Actions (parallel jobs, caching, & linting)
 * REST API design
 * Riot Games API integration
 * Backend security best practices
