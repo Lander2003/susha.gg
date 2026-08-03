@@ -1,4 +1,4 @@
-# Name of the workflow as it appears in the GitHub Actions UI
+# Name of the workflow as it appears in the GitHub Actions Interface
 name: CI
 
 # Trigger conditions: when should this workflow execute?
