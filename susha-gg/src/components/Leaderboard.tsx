@@ -73,7 +73,10 @@ export default function Leaderboard() {
   }
 
   useEffect(() => {
-    fetchLeaderboard(region);
+    const loadLeaderboard = async () => {
+        await fetchLeaderboard(region);
+    }
+    loadLeaderboard();
   }, [region]);
 
   return (
