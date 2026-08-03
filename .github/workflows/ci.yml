@@ -6,19 +6,25 @@ on:
   pull_request:
     branches:
       - main # Runs on pull requests targeting the main branch
-
-  push:
-    branches:
-      - main # Runs on direct pushes to the main branch
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
 
 # Restrict default runner permissions to read-only for repository security
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   # JOB 1: Frontend Checks (React / Vite)
   frontend:
     name: Frontend checks
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest # Run environment VM
 
     # Run all commands inside the frontend subfolder
@@ -51,8 +57,7 @@ jobs:
       - name: Build frontend
         env:
           # Dummy values provided so Vite build succeeds without requiring real keys
-          VITE_API_BASE_URL: "http://localhost:3000"
-          VITE_RIOT_API_KEY: "RGAPI-dummy-key-for-ci"
+          VITE_API_URL: "http://localhost:3000"
         run: npm run build
 
 
@@ -60,6 +65,7 @@ jobs:
   # This job runs in parallel with the frontend job to speed up CI
   backend:
     name: Backend checks
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
 
     # Run all commands inside the backend subfolder
