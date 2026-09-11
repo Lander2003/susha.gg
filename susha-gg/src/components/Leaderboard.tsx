@@ -14,11 +14,13 @@ type LeaderboardProps = {
   ) => Promise<void>;
 };
 
+function formatQueueName(queue: string) {
+  return queue === "RANKED_SOLO_5x5" ? "Ranked Solo/Duo" : queue;
+}
+
 export default function Leaderboard({ searchPlayer }: LeaderboardProps) {
   const [region, setRegion] = useState("EUW");
-  const [leaderboard, setLeaderboard] =
-    useState<LeaderboardData | null>(null);
-
+  const [leaderboard, setLeaderboard] = useState<LeaderboardData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
@@ -28,12 +30,7 @@ export default function Leaderboard({ searchPlayer }: LeaderboardProps) {
     setError("");
 
     try {
-      const data = await getLeaderboardRequest(
-        selectedRegion,
-        0,
-        25
-      );
-
+      const data = await getLeaderboardRequest(selectedRegion, 0, 25);
       setLeaderboard(data);
     } catch (error) {
       setError(
@@ -47,11 +44,7 @@ export default function Leaderboard({ searchPlayer }: LeaderboardProps) {
   }
 
   async function loadMorePlayers() {
-    if (
-      !leaderboard ||
-      !leaderboard.pagination.hasMore ||
-      isLoadingMore
-    ) {
+    if (!leaderboard || !leaderboard.pagination.hasMore || isLoadingMore) {
       return;
     }
 
@@ -82,9 +75,10 @@ export default function Leaderboard({ searchPlayer }: LeaderboardProps) {
 
   useEffect(() => {
     const loadLeaderboard = async () => {
-        await fetchLeaderboard(region);
-    }
-    loadLeaderboard();
+      await fetchLeaderboard(region);
+    };
+
+    void loadLeaderboard();
   }, [region]);
 
   return (
@@ -96,97 +90,180 @@ export default function Leaderboard({ searchPlayer }: LeaderboardProps) {
           <p>View the highest ranked solo queue players by region.</p>
         </div>
 
-        <div className="leaderboard-regions">
-          {regions.map((serverRegion) => (
-            <button
-              key={serverRegion}
-              type="button"
-              onClick={() => setRegion(serverRegion)}
-              className={
-                region === serverRegion
-                  ? "region-button active"
-                  : "region-button"
-              }
-            >
-              {serverRegion}
-            </button>
-          ))}
+        <div className="leaderboard-region-picker">
+          <span>Region</span>
+          <div className="leaderboard-regions" aria-label="Leaderboard region">
+            {regions.map((serverRegion) => (
+              <button
+                key={serverRegion}
+                type="button"
+                onClick={() => setRegion(serverRegion)}
+                className={
+                  region === serverRegion
+                    ? "region-button active"
+                    : "region-button"
+                }
+                aria-pressed={region === serverRegion}
+              >
+                {serverRegion}
+              </button>
+            ))}
+          </div>
         </div>
 
         {error && <span className="error-message">{error}</span>}
       </section>
 
-
-      {isLoading && <div className="loader"></div>}
+      {isLoading && (
+        <section className="leaderboard-loading" aria-label="Loading leaderboard">
+          <div className="loader" />
+          <p>Loading {region} standings...</p>
+        </section>
+      )}
 
       {!isLoading && leaderboard && (
         <section className="leaderboard-container">
           <div className="leaderboard-meta">
             <div>
               <span className="section-label">Current standings</span>
-              <h2>{leaderboard.region} {leaderboard.tier}</h2>
+              <h2>
+                {leaderboard.region} {leaderboard.tier}
+              </h2>
             </div>
-            <p><strong>{leaderboard.totalPlayers}</strong> players</p>
+            <p>
+              Showing <strong>{leaderboard.players.length}</strong> of{" "}
+              <strong>{leaderboard.totalPlayers}</strong> players
+            </p>
           </div>
 
-          <div className="leaderboard-table-wrapper">
-  <table className="leaderboard-table">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Player</th>
-        <th>Rank</th>
-        <th>LP</th>
-        <th>Wins</th>
-        <th>Losses</th>
-        <th>Games</th>
-        <th>Win Rate</th>
-      </tr>
-    </thead>
+          <div className="leaderboard-summary" aria-label="Leaderboard summary">
+            <div>
+              <span>Queue</span>
+              <strong>{formatQueueName(leaderboard.queue)}</strong>
+            </div>
+            <div>
+              <span>Region</span>
+              <strong>{leaderboard.region}</strong>
+            </div>
+            <div>
+              <span>Leader</span>
+              <strong>
+                {leaderboard.players[0]
+                  ? `${leaderboard.players[0].lp.toLocaleString()} LP`
+                  : "—"}
+              </strong>
+            </div>
+          </div>
 
-    <tbody>
-      {leaderboard.players.map((player) => {
-        const gameName = player.gameName;
-        const gameTag = player.gameTag;
+          {leaderboard.players.length > 0 ? (
+            <div className="leaderboard-table-wrapper">
+              <table className="leaderboard-table">
+                <caption className="sr-only">
+                  {leaderboard.region} Challenger player standings
+                </caption>
+                <thead>
+                  <tr>
+                    <th>Position</th>
+                    <th>Player</th>
+                    <th>Division</th>
+                    <th>League Points</th>
+                    <th>Record</th>
+                    <th>Games</th>
+                    <th>Win Rate</th>
+                  </tr>
+                </thead>
 
-        return (
-        <tr key={player.puuid}>
-          <td>{player.position}</td>
-          <td>
-            {gameName && gameTag ? (
-              <button
-                type="button"
-                className="leaderboard-player"
-                title={`View ${gameName}#${gameTag}`}
-                onClick={() =>
-                  void searchPlayer(
-                    gameName,
-                    gameTag,
-                    leaderboard.region
-                  )
-                }
-              >
-                <span>{gameName}</span>
-                <small>#{gameTag}</small>
-              </button>
-            ) : (
-              <span className="leaderboard-player-fallback">
-                Player #{player.position}
-              </span>
-            )}
-          </td>
-          <td>{player.rank}</td>
-          <td>{player.lp}</td>
-          <td>{player.wins}</td>
-          <td>{player.losses}</td>
-          <td>{player.totalGames}</td>
-          <td>{player.winRate}%</td>
-        </tr>
-        );
-      })}
-    </tbody>
-  </table>
-</div>
+                <tbody>
+                  {leaderboard.players.map((player) => {
+                    const gameName = player.gameName;
+                    const gameTag = player.gameTag;
+                    const isTopThree = player.position <= 3;
+
+                    return (
+                      <tr
+                        key={player.puuid}
+                        className={
+                          isTopThree
+                            ? `leaderboard-row top-player top-${player.position}`
+                            : "leaderboard-row"
+                        }
+                      >
+                        <td className="leaderboard-position-cell">
+                          <span className="leaderboard-position">
+                            {player.position}
+                          </span>
+                        </td>
+                        <td className="leaderboard-player-cell">
+                          {gameName && gameTag ? (
+                            <button
+                              type="button"
+                              className="leaderboard-player"
+                              title={`View ${gameName}#${gameTag}`}
+                              onClick={() =>
+                                void searchPlayer(
+                                  gameName,
+                                  gameTag,
+                                  leaderboard.region
+                                )
+                              }
+                            >
+                              <span className="leaderboard-player-name">
+                                {gameName}
+                              </span>
+                              <small>#{gameTag}</small>
+                              <span
+                                className="leaderboard-player-arrow"
+                                aria-hidden="true"
+                              >
+                                →
+                              </span>
+                            </button>
+                          ) : (
+                            <span className="leaderboard-player-fallback">
+                              Player #{player.position}
+                            </span>
+                          )}
+                        </td>
+                        <td>
+                          <span className="leaderboard-division">{player.rank}</span>
+                        </td>
+                        <td className="leaderboard-lp">
+                          <strong>{player.lp.toLocaleString()}</strong>
+                          <span>LP</span>
+                        </td>
+                        <td className="leaderboard-record">
+                          <span className="record-wins">{player.wins}W</span>
+                          <span aria-hidden="true">·</span>
+                          <span className="record-losses">{player.losses}L</span>
+                        </td>
+                        <td>{player.totalGames}</td>
+                        <td className="leaderboard-win-rate">
+                          <div className="win-rate-heading">
+                            <strong>{player.winRate}%</strong>
+                          </div>
+                          <div
+                            className="win-rate-track"
+                            role="meter"
+                            aria-label={`${player.winRate}% win rate`}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-valuenow={player.winRate}
+                          >
+                            <span style={{ width: `${player.winRate}%` }} />
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="leaderboard-empty">
+              <h3>No ranked players found</h3>
+              <p>Try another region to view its Challenger standings.</p>
+            </div>
+          )}
 
           {leaderboard.pagination.hasMore && (
             <button
@@ -195,7 +272,7 @@ export default function Leaderboard({ searchPlayer }: LeaderboardProps) {
               onClick={loadMorePlayers}
               disabled={isLoadingMore}
             >
-              {isLoadingMore ? "Loading..." : "Load more"}
+              {isLoadingMore ? "Loading..." : "Load more players"}
             </button>
           )}
         </section>
