@@ -1,4 +1,4 @@
-import type { PlayerData } from "../App";
+import type { PlayerData } from "../api/contracts";
 
 type RankedSoloCardProps = {
   rankedSolo: PlayerData["rankedSolo"];

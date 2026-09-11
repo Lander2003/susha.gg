@@ -1,4 +1,5 @@
-import type { PlayerData } from "../App";
+import type { PlayerData } from "../api/contracts";
+import { getMatchesRequest } from "../api/getMatches";
 import { useState } from "react";
 import RankedSoloCard from "./RankedSoloCard";
 import { searchPlayerRequest } from "../api/searchPlayer";
@@ -14,7 +15,6 @@ export default function Content({ playerData, updateData, updateLoadingState }: 
 
   const [openMatchId, setOpenMatchId] = useState<string | null>(null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const API_URL = import.meta.env.VITE_API_URL;
   async function searchMatchPlayer(
   gameName: string,
   gameTag: string
@@ -45,22 +45,11 @@ export default function Content({ playerData, updateData, updateLoadingState }: 
   setIsLoadingMore(true);
 
   try {
-    const parameters = new URLSearchParams({
-  puuid: playerData.puuid,
-  region: playerData.region,
-  start: String(playerData.pagination.nextStart),
-  count: "5",
-});
-
-const response = await fetch(
-  `${API_URL}/getMatches?${parameters.toString()}`
-);
-
-    const data: PlayerData = await response.json();
-
-    if (!response.ok) {
-      throw new Error("Could not load more matches");
-    }
+    const data = await getMatchesRequest(
+      playerData.puuid,
+      playerData.region,
+      playerData.pagination.nextStart
+    );
 
     updateData({
       ...playerData,

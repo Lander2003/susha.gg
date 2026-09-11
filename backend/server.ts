@@ -1,17 +1,41 @@
-import express from "express";
+import express, { type Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 
+import type {
+  LeaderboardResponse,
+  MatchesResponse,
+  PlayerResponse,
+} from "./apiTypes.js";
+import {
+  RiotApiError,
+  RiotNetworkError,
+  RiotPayloadError,
+  type RiotOperation,
+} from "./errors.js";
 import { getSimplifiedMatches } from "./getSimplifiedMatches.js";
 import { getLeaderboard } from "./getLeaderboard.js";
+import {
+  leaderboardQuerySchema,
+  matchesQuerySchema,
+  parseRiotPayload,
+  playerQuerySchema,
+  riotAccountSchema,
+  riotLeagueEntriesSchema,
+  type Region,
+} from "./schemas.js";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const RIOT_API_KEY = process.env.RIOT_API_KEY;
+const RIOT_API_KEY = process.env.RIOT_API_KEY ?? "";
+
+if (!RIOT_API_KEY) {
+  throw new Error("RIOT_API_KEY environment variable is required");
+}
 
 const globalLimiter = rateLimit({
   windowMs: 1 * 60 * 1000,
@@ -54,8 +78,6 @@ const leaderboardLimiter = rateLimit({
     error: "Too many leaderboard requests. Please try again later.",
   },
 });
-type Region = "NA" | "BR" | "OCE" | "EUNE" | "EUW" | "KR";
-
 const routingMap: Record<Region, string> = {
   NA: "americas",
   BR: "americas",
@@ -74,61 +96,114 @@ const platformMap: Record<Region, string> = {
   KR: "kr",
 };
 
-function isRegion(value: string): value is Region {
-  return value in routingMap;
-}
+async function riotFetch(
+  url: string,
+  operation: RiotOperation
+): Promise<unknown> {
+  let response: globalThis.Response;
 
-async function riotFetch(url: string) {
-  const response = await fetch(url, {
-    headers: {
-      "X-Riot-Token": RIOT_API_KEY!,
-    },
-  });
-
-  if (!response.ok) {
-    const error: any = new Error(
-      `Riot API responded with ${response.status}`
-    );
-
-    error.status = response.status;
-
-    throw error;
+  try {
+    response = await fetch(url, {
+      headers: {
+        "X-Riot-Token": RIOT_API_KEY,
+      },
+      signal: AbortSignal.timeout(10_000),
+    });
+  } catch (error) {
+    throw new RiotNetworkError(operation, { cause: error });
   }
 
-  return response.json();
+  if (!response.ok) {
+    throw new RiotApiError(
+      response.status,
+      operation,
+      response.headers.get("retry-after")
+    );
+  }
+
+  try {
+    return await response.json();
+  } catch (error) {
+    throw new RiotPayloadError(
+      operation,
+      error instanceof Error ? error.message : "Response was not valid JSON"
+    );
+  }
+}
+
+function sendRouteError(res: Response, error: unknown) {
+  if (error instanceof RiotApiError) {
+    if (error.status === 404) {
+      const messageByOperation: Partial<Record<RiotOperation, string>> = {
+        account: "Player not found",
+        ranked: "Ranked data not found",
+        "match-list": "Match history not found",
+        "match-detail": "Match data not found",
+        leaderboard: "Leaderboard not found",
+      };
+
+      return res.status(404).json({
+        error: messageByOperation[error.operation] ?? "Riot resource not found",
+      });
+    }
+
+    if (error.status === 429) {
+      if (error.retryAfter) {
+        res.setHeader("Retry-After", error.retryAfter);
+      }
+
+      return res.status(429).json({
+        error: "Riot API rate limit reached. Please try again later.",
+      });
+    }
+
+    console.error(error.message);
+
+    if (error.status === 401 || error.status === 403) {
+      return res.status(502).json({
+        error: "The Riot API credentials are unavailable or invalid",
+      });
+    }
+
+    return res.status(502).json({
+      error: "Riot API request failed",
+    });
+  }
+
+  if (error instanceof RiotPayloadError) {
+    console.error(error.message);
+    return res.status(502).json({
+      error: "Riot API returned an unexpected response",
+    });
+  }
+
+  if (error instanceof RiotNetworkError) {
+    console.error(error.message, error.cause);
+    return res.status(502).json({
+      error: "Could not reach the Riot API",
+    });
+  }
+
+  console.error("Unexpected server error:", error);
+  return res.status(500).json({ error: "Unexpected server error" });
+}
+
+function sendInvalidQuery(res: Response, issues: { message: string }[]) {
+  return res.status(400).json({
+    error: issues[0]?.message ?? "Invalid query parameters",
+  });
 }
 
 app.get("/getPlayer", getPlayerLimiter, async (req, res) => {
-
   try {
-    const gameId = String(req.query.gameid || "");
-    const region = String(req.query.region || "").toUpperCase();
+    const queryResult = playerQuerySchema.safeParse(req.query);
 
-    if (gameId.length < 3 || gameId.length > 30) {
-      return res.status(400).json({
-      error: "Invalid Riot ID",
-      });
+    if (!queryResult.success) {
+      return sendInvalidQuery(res, queryResult.error.issues);
     }
 
-    if (!gameId.includes("#")) {
-     return res.status(400).json({
-     error: "Invalid Riot ID format",
-     });
-    }
-
-    const [gameName, gameTag] = gameId.split("#");
-
-    if (!gameName || !gameTag) {
-      return res.status(400).json({
-        error: "Invalid Riot ID. Use format: Name#Tag",
-      });
-    }
-
-    if (!isRegion(region)) {
-      return res.status(400).json({
-        error: "Invalid region",
-      });
-    }
+    const { gameid: riotId, region } = queryResult.data;
+    const { gameName, gameTag } = riotId;
 
     const routingRegion = routingMap[region];
     const platformRegion = platformMap[region];
@@ -136,121 +211,62 @@ app.get("/getPlayer", getPlayerLimiter, async (req, res) => {
     const encodedGameName = encodeURIComponent(gameName);
     const encodedGameTag = encodeURIComponent(gameTag);
 
-    // 1. Get account data from Riot ID
-    const accountData = await riotFetch(
-      `https://${routingRegion}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodedGameName}/${encodedGameTag}`
+    const accountData = parseRiotPayload(
+      riotAccountSchema,
+      await riotFetch(
+        `https://${routingRegion}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodedGameName}/${encodedGameTag}`,
+        "account"
+      ),
+      "account"
     );
 
     const puuid = accountData.puuid;
 
     let rankedSolo = null;
 
-try {
-  const rankedData = await riotFetch(
-    `https://${platformRegion}.api.riotgames.com/lol/league/v4/entries/by-puuid/${puuid}`
-  );
+    const rankedData = parseRiotPayload(
+      riotLeagueEntriesSchema,
+      await riotFetch(
+        `https://${platformRegion}.api.riotgames.com/lol/league/v4/entries/by-puuid/${encodeURIComponent(
+          puuid
+        )}`,
+        "ranked"
+      ),
+      "ranked"
+    );
 
-  const soloQueue = rankedData.find(
-    (queue: any) => queue.queueType === "RANKED_SOLO_5x5"
-  );
+    const soloQueue = rankedData.find(
+      (queue) => queue.queueType === "RANKED_SOLO_5x5"
+    );
 
-  rankedSolo = soloQueue
-    ? {
-        tier: soloQueue.tier,
-        rank: soloQueue.rank,
-        lp: soloQueue.leaguePoints,
-        wins: soloQueue.wins,
-        losses: soloQueue.losses,
-        totalGames: soloQueue.wins + soloQueue.losses,
-      }
-    : null;
-} catch (error) {
-  console.log("Could not fetch ranked solo data:", error);
-}
+    rankedSolo = soloQueue
+      ? {
+          tier: soloQueue.tier,
+          rank: soloQueue.rank,
+          lp: soloQueue.leaguePoints,
+          wins: soloQueue.wins,
+          losses: soloQueue.losses,
+          totalGames: soloQueue.wins + soloQueue.losses,
+        }
+      : null;
 
-    // 2. Get recent match IDs
-    // 2. Get recent matches
-const start = 0;
-const count = 5;
+    const start = 0;
+    const count = 5;
 
-const { matchIds, simplifiedMatches } =
-  await getSimplifiedMatches({
-    puuid,
-    routingRegion,
-    start,
-    count,
-    riotFetch,
-  });
-
-return res.json({
-  puuid,
-  gameName,
-  gameTag,
-  region,
-  rankedSolo,
-  simplifiedMatches,
-  pagination: {
-    start,
-    count,
-    nextStart: start + matchIds.length,
-    hasMore: matchIds.length === count,
-  },
-});
-  } catch (error: any) {
-    if (error.status === 404) {
-      return res.status(404).json({
-        error: "No matches found",
-      });
-    }
-
-    return res.status(500).json({
-      error: "Something went wrong while fetching matches",
+    const { matchIds, simplifiedMatches } = await getSimplifiedMatches({
+      puuid,
+      routingRegion,
+      start,
+      count,
+      riotFetch,
     });
-  }
-});
 
-app.get("/getMatches", getMatchesLimiter, async (req, res) => {
-  try {
-    const puuid = String(req.query.puuid || "").trim();
-    const region = String(req.query.region || "").toUpperCase();
-
-    const requestedStart = Number(req.query.start);
-    const requestedCount = Number(req.query.count);
-
-    const start =
-      Number.isInteger(requestedStart) && requestedStart >= 0
-        ? requestedStart
-        : 0;
-
-    const count =
-      Number.isInteger(requestedCount) && requestedCount >= 1
-        ? Math.min(requestedCount, 10)
-        : 5;
-
-    if (!puuid || puuid.length > 100) {
-      return res.status(400).json({
-        error: "Invalid player identifier",
-      });
-    }
-
-    if (!isRegion(region)) {
-      return res.status(400).json({
-        error: "Invalid region",
-      });
-    }
-
-    const routingRegion = routingMap[region];
-
-    const { matchIds, simplifiedMatches } =
-      await getSimplifiedMatches({
-        puuid,
-        routingRegion,
-        start,
-        count,
-        riotFetch,
-      });
-    
-    return res.json({
+    const responseBody: PlayerResponse = {
+      puuid,
+      gameName,
+      gameTag,
+      region,
+      rankedSolo,
       simplifiedMatches,
       pagination: {
         start,
@@ -258,44 +274,61 @@ app.get("/getMatches", getMatchesLimiter, async (req, res) => {
         nextStart: start + matchIds.length,
         hasMore: matchIds.length === count,
       },
-    });
-  } catch (error: any) {
-    if (error.status === 404) {
-      return res.status(404).json({
-        error: "No matches found",
-      });
+    };
+
+    return res.json(responseBody);
+  } catch (error: unknown) {
+    return sendRouteError(res, error);
+  }
+});
+
+app.get("/getMatches", getMatchesLimiter, async (req, res) => {
+  try {
+    const queryResult = matchesQuerySchema.safeParse(req.query);
+
+    if (!queryResult.success) {
+      return sendInvalidQuery(res, queryResult.error.issues);
     }
 
-    return res.status(500).json({
-      error: "Something went wrong while fetching matches",
+    const { puuid, region, start, count } = queryResult.data;
+
+    const routingRegion = routingMap[region];
+
+    const { matchIds, simplifiedMatches } = await getSimplifiedMatches({
+      puuid,
+      routingRegion,
+      start,
+      count,
+      riotFetch,
     });
+
+    const responseBody: MatchesResponse = {
+      simplifiedMatches,
+      pagination: {
+        start,
+        count,
+        nextStart: start + matchIds.length,
+        hasMore: matchIds.length === count,
+      },
+    };
+
+    return res.json(responseBody);
+  } catch (error: unknown) {
+    return sendRouteError(res, error);
   }
 });
 
 app.get("/leaderboard", leaderboardLimiter, async (req, res) => {
   try {
-    const region = String(req.query.region || "").toUpperCase();
+    const queryResult = leaderboardQuerySchema.safeParse(req.query);
 
-    const requestedStart = Number(req.query.start);
-    const requestedCount = Number(req.query.count);
-
-    const start =
-      Number.isInteger(requestedStart) && requestedStart >= 0
-        ? requestedStart
-        : 0;
-
-    const count =
-      Number.isInteger(requestedCount) && requestedCount >= 1
-        ? Math.min(requestedCount, 50)
-        : 25;
-
-    if (!isRegion(region)) {
-      return res.status(400).json({
-        error: "Invalid region",
-      });
+    if (!queryResult.success) {
+      return sendInvalidQuery(res, queryResult.error.issues);
     }
 
-const platformRegion = platformMap[region];
+    const { region, start, count } = queryResult.data;
+
+    const platformRegion = platformMap[region];
     const leaderboard = await getLeaderboard({
       platformRegion,
       start,
@@ -303,7 +336,7 @@ const platformRegion = platformMap[region];
       riotFetch,
     });
 
-    return res.json({
+    const responseBody: LeaderboardResponse = {
       region,
       ...leaderboard,
       pagination: {
@@ -314,13 +347,11 @@ const platformRegion = platformMap[region];
           start + leaderboard.players.length <
           leaderboard.totalPlayers,
       },
-    });
-  } catch (error: any) {
-    console.error("Leaderboard error:", error);
+    };
 
-    return res.status(500).json({
-      error: "Something went wrong while fetching leaderboard data",
-    });
+    return res.json(responseBody);
+  } catch (error: unknown) {
+    return sendRouteError(res, error);
   }
 });
 

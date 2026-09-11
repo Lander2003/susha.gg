@@ -1,23 +1,15 @@
 import { getFromCache, setCache } from "./cache.js";
+import type { LeaderboardPlayer } from "./apiTypes.js";
+import type { RiotOperation } from "./errors.js";
+import { parseRiotPayload, riotLeaderboardSchema } from "./schemas.js";
 
-type RiotFetch = (url: string) => Promise<any>;
+type RiotFetch = (url: string, operation: RiotOperation) => Promise<unknown>;
 
 type GetLeaderboardParams = {
   platformRegion: string;
   start: number;
   count: number;
   riotFetch: RiotFetch;
-};
-
-type LeaderboardPlayer = {
-  position: number;
-  puuid: string;
-  rank: string;
-  lp: number;
-  wins: number;
-  losses: number;
-  totalGames: number;
-  winRate: number;
 };
 
 type CachedLeaderboard = {
@@ -41,16 +33,21 @@ export async function getLeaderboard({
     getFromCache<CachedLeaderboard>(cacheKey);
 
   if (!fullLeaderboard) {
-    const leaderboardData = await riotFetch(
-      `https://${platformRegion}.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5`
+    const leaderboardData = parseRiotPayload(
+      riotLeaderboardSchema,
+      await riotFetch(
+        `https://${platformRegion}.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5`,
+        "leaderboard"
+      ),
+      "leaderboard"
     );
 
     const sortedEntries = leaderboardData.entries.sort(
-      (a: any, b: any) => b.leaguePoints - a.leaguePoints
+      (a, b) => b.leaguePoints - a.leaguePoints
     );
 
     const players = sortedEntries.map(
-      (player: any, index: number) => {
+      (player, index): LeaderboardPlayer => {
         const totalGames = player.wins + player.losses;
 
         const winRate =

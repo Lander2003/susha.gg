@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { searchPlayerRequest } from "../api/searchPlayer";
 
-import type { PlayerData } from "../App";
+import type { PlayerData } from "../api/contracts";
 
 type SearchProps = {
   updateData: (newData: PlayerData) => void;

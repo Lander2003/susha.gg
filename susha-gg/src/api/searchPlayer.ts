@@ -1,4 +1,5 @@
-import type { PlayerData } from "../App";
+import { fetchApi } from "./client";
+import { playerResponseSchema, type PlayerData } from "./contracts";
 
 export async function searchPlayerRequest(
   gameName: string,
@@ -12,15 +13,8 @@ export async function searchPlayerRequest(
 
   const API_URL = import.meta.env.VITE_API_URL;
 
-  const response = await fetch(
-    `${API_URL}/getPlayer?${parameters.toString()}`
+  return fetchApi(
+    `${API_URL}/getPlayer?${parameters.toString()}`,
+    playerResponseSchema
   );
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.error || "Could not fetch player");
-  }
-
-  return data;
 }
