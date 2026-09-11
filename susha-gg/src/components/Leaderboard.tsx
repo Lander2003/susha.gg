@@ -82,10 +82,11 @@ export default function Leaderboard() {
   return (
     <main className="leaderboard-page">
       <section className="leaderboard-header">
-        <h1>Challenger Leaderboard</h1>
-        <p>
-          View the highest ranked solo queue players by region.
-        </p>
+        <div className="leaderboard-title">
+          <span className="section-label">Ranked Solo/Duo</span>
+          <h1>Challenger Leaderboard</h1>
+          <p>View the highest ranked solo queue players by region.</p>
+        </div>
 
         <div className="leaderboard-regions">
           {regions.map((serverRegion) => (
@@ -113,10 +114,11 @@ export default function Leaderboard() {
       {!isLoading && leaderboard && (
         <section className="leaderboard-container">
           <div className="leaderboard-meta">
-            <h2>
-              {leaderboard.region} {leaderboard.tier}
-            </h2>
-            <p>{leaderboard.totalPlayers} players</p>
+            <div>
+              <span className="section-label">Current standings</span>
+              <h2>{leaderboard.region} {leaderboard.tier}</h2>
+            </div>
+            <p><strong>{leaderboard.totalPlayers}</strong> players</p>
           </div>
 
           <div className="leaderboard-table-wrapper">

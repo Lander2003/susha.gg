@@ -1,14 +1,16 @@
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 export default function Navbar() {
     return (
-        <nav className="navbar">
+        <nav className="navbar" aria-label="Primary navigation">
+          <div className="navbar-inner">
             <h1>susha.gg</h1>
             <ul className="nav-links">
-                <li><Link to="/">Search</Link></li>
-                <li><Link to="/leaderboard">Leaderboard</Link></li>
-               <li><Link to="/about-me">About Me</Link></li>
+              <li><NavLink to="/" end>Search</NavLink></li>
+              <li><NavLink to="/leaderboard">Leaderboard</NavLink></li>
+              <li><NavLink to="/about-me">About Me</NavLink></li>
             </ul>
+          </div>
         </nav>
     )
 }
