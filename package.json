@@ -1,0 +1,23 @@
+{
+  "name": "susha-gg",
+  "version": "1.0.0",
+  "description": "![CI Status](https://github.com/Lander2003/susha.gg/actions/workflows/ci.yml/badge.svg)\r ![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react&logoColor=black)\r ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat&logo=typescript&logoColor=white)\r ![Node.js](https://img.shields.io/badge/Node.js-22-339933?style=flat&logo=nodedotjs&logoColor=white)\r ![Express](https://img.shields.io/badge/Express-4.x-000000?style=flat&logo=express&logoColor=white)\r ![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white)\r ![License](https://img.shields.io/badge/License-MIT-blue.svg)",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lander2003/susha.gg.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Lander2003/susha.gg/issues"
+  },
+  "homepage": "https://github.com/Lander2003/susha.gg#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.2.0"
+  }
+}
