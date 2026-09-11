@@ -26,10 +26,17 @@ type TeamProps = {
   title: string;
   players: MatchPlayer[];
   won: boolean | undefined;
+  searchedPlayerPuuid: string;
   onPlayerClick: (gameName: string, gameTag: string) => void;
 };
 
-function MatchTeam({ title, players, won, onPlayerClick }: TeamProps) {
+function MatchTeam({
+  title,
+  players,
+  won,
+  searchedPlayerPuuid,
+  onPlayerClick,
+}: TeamProps) {
   return (
     <section className={`team-section ${won ? "team-won" : "team-lost"}`}>
       <header className="team-heading">
@@ -38,6 +45,7 @@ function MatchTeam({ title, players, won, onPlayerClick }: TeamProps) {
       </header>
 
       {players.map((player) => {
+        const isSearchedPlayer = player.puuid === searchedPlayerPuuid;
         const championImage =
           `https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/${player.champion}.png`;
         const displayName = player.gameName
@@ -47,16 +55,24 @@ function MatchTeam({ title, players, won, onPlayerClick }: TeamProps) {
           : "Guest";
 
         return (
-          <div className="match-player" key={player.puuid}>
+          <div
+            className={`match-player${isSearchedPlayer ? " searched-player" : ""}`}
+            key={player.puuid}
+          >
             <img src={championImage} alt={player.champion} />
-            <button
-              type="button"
-              className="player-name"
-              title={`${player.gameName}#${player.gameTag}`}
-              onClick={() => onPlayerClick(player.gameName, player.gameTag)}
-            >
-              {displayName}
-            </button>
+            <div className="match-player-identity">
+              <button
+                type="button"
+                className="player-name"
+                title={`${player.gameName}#${player.gameTag}`}
+                onClick={() => onPlayerClick(player.gameName, player.gameTag)}
+              >
+                {displayName}
+              </button>
+              {isSearchedPlayer && (
+                <span className="searched-player-label">Searched</span>
+              )}
+            </div>
             <span className="team-kda">
               {player.kills} / {player.deaths} / {player.assists}
             </span>
@@ -198,12 +214,14 @@ export default function Content({ playerData, updateData, searchPlayer }: Conten
               title="Blue Team"
               players={blueTeam}
               won={blueTeamWon}
+              searchedPlayerPuuid={searchedPlayer.puuid}
               onPlayerClick={searchMatchPlayer}
             />
             <MatchTeam
               title="Red Team"
               players={redTeam}
               won={redTeamWon}
+              searchedPlayerPuuid={searchedPlayer.puuid}
               onPlayerClick={searchMatchPlayer}
             />
           </div>

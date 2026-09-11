@@ -613,6 +613,13 @@
   object-fit: cover;
 }
 
+.match-player-identity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
 .player-name {
   min-width: 0;
   padding: 0;
@@ -630,6 +637,33 @@
 
 .player-name:hover {
   text-decoration: underline;
+}
+
+.match-player.searched-player {
+  background: #edf4ff;
+  box-shadow: inset 3px 0 0 var(--blue);
+}
+
+.searched-player img {
+  box-shadow: 0 0 0 2px #9cc2fa;
+}
+
+.searched-player .player-name {
+  color: var(--blue-dark);
+}
+
+.searched-player-label {
+  flex: 0 0 auto;
+  padding: 2px 5px;
+  border: 1px solid #b9d2f5;
+  border-radius: 3px;
+  background: #fff;
+  color: var(--blue-dark);
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  line-height: 1.25;
+  text-transform: uppercase;
 }
 
 .team-kda,
