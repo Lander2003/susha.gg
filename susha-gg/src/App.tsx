@@ -6,56 +6,9 @@ import Search from './components/Search'
 import Leaderboard from './components/Leaderboard'
 import Content from './components/Content'
 import Footer from "./components/Footer";
+import type { PlayerData } from "./api/contracts";
 
 import './App.css'
-
-
-type MatchPlayer = {
-  puuid: string;
-  gameName: string;
-  gameTag: string;
-  champion: string;
-  kills: number;
-  deaths: number;
-  assists: number;
-  win: boolean;
-  role: string;
-  teamId: number;
-  cs: number;
-};
-
-type SimplifiedMatch = {
-  matchId: string;
-  duration: number;
-  queueId: number;
-  searchedPlayer: MatchPlayer;
-  players: MatchPlayer[];
-};
-
-export type PlayerData = {
-  puuid: string;
-  gameName: string;
-  gameTag: string;
-  region: string;
-  rankedSolo: {
-    tier: string;
-    rank: string;
-    lp: number;
-    wins: number;
-    losses: number;
-    totalGames: number;
-  } | null;
-  matchIds: string[];
-  simplifiedMatches: SimplifiedMatch[];
-  pagination: {
-    start: number;
-    count: number;
-    nextStart: number;
-    hasMore: boolean;
-  };
-};
-
-
 
 
 function App() {

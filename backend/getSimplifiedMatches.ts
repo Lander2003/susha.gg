@@ -1,8 +1,14 @@
 import { getFromCache, setCache } from "./cache.js";
+import type { MatchPlayer, SimplifiedMatch } from "./apiTypes.js";
+import type { RiotOperation } from "./errors.js";
+import {
+  parseRiotPayload,
+  riotMatchIdsSchema,
+  riotMatchSchema,
+} from "./schemas.js";
 
-type RiotFetch = (url: string) => Promise<any>;
-
-type RiotMatch = any;
+type RiotFetch = (url: string, operation: RiotOperation) => Promise<unknown>;
+type RiotMatch = ReturnType<typeof riotMatchSchema.parse>;
 
 type GetSimplifiedMatchesParams = {
   puuid: string;
@@ -20,11 +26,19 @@ export async function getSimplifiedMatches({
   start,
   count,
   riotFetch,
-}: GetSimplifiedMatchesParams) {
+}: GetSimplifiedMatchesParams): Promise<{
+  matchIds: string[];
+  simplifiedMatches: SimplifiedMatch[];
+}> {
   const encodedPuuid = encodeURIComponent(puuid);
 
-  const matchIds: string[] = await riotFetch(
-    `https://${routingRegion}.api.riotgames.com/lol/match/v5/matches/by-puuid/${encodedPuuid}/ids?start=${start}&count=${count}`
+  const matchIds = parseRiotPayload(
+    riotMatchIdsSchema,
+    await riotFetch(
+      `https://${routingRegion}.api.riotgames.com/lol/match/v5/matches/by-puuid/${encodedPuuid}/ids?start=${start}&count=${count}`,
+      "match-list"
+    ),
+    "match-list"
   );
 
   const matches = await Promise.all(
@@ -36,7 +50,7 @@ export async function getSimplifiedMatches({
       });
 
       const searchedPlayer = singleMatch.info.participants.find(
-        (participant: any) => participant.puuid === puuid
+        (participant) => participant.puuid === puuid
       );
 
       if (!searchedPlayer) return null;
@@ -75,10 +89,15 @@ async function getMatchDetails({
     return cachedMatch;
   }
 
-  const match = await riotFetch(
-    `https://${routingRegion}.api.riotgames.com/lol/match/v5/matches/${encodeURIComponent(
-      matchId
-    )}`
+  const match = parseRiotPayload(
+    riotMatchSchema,
+    await riotFetch(
+      `https://${routingRegion}.api.riotgames.com/lol/match/v5/matches/${encodeURIComponent(
+        matchId
+      )}`,
+      "match-detail"
+    ),
+    "match-detail"
   );
 
   setCache(cacheKey, match, MATCH_CACHE_TTL_MS);
@@ -86,11 +105,13 @@ async function getMatchDetails({
   return match;
 }
 
-function simplifyParticipant(participant: any) {
+function simplifyParticipant(
+  participant: RiotMatch["info"]["participants"][number]
+): MatchPlayer {
   return {
     puuid: participant.puuid,
-    gameName: participant.riotIdGameName,
-    gameTag: participant.riotIdTagline,
+    gameName: participant.riotIdGameName ?? "",
+    gameTag: participant.riotIdTagline ?? "",
     champion: participant.championName,
     kills: participant.kills,
     deaths: participant.deaths,
