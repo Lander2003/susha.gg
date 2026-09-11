@@ -737,6 +737,31 @@
   white-space: nowrap;
 }
 
+.leaderboard-player {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: #1d5eae;
+  cursor: pointer;
+  font-weight: 750;
+  text-align: left;
+}
+
+.leaderboard-player:hover span {
+  text-decoration: underline;
+}
+
+.leaderboard-player small,
+.leaderboard-player-fallback {
+  color: #6d737c;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
 .leaderboard-table th {
   background: #0f0f0f;
   color: #fff;

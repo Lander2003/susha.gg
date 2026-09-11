@@ -1,15 +1,15 @@
 import { useState } from "react";
-import { searchPlayerRequest } from "../api/searchPlayer";
-
-import type { PlayerData } from "../api/contracts";
 
 type SearchProps = {
-  updateData: (newData: PlayerData) => void;
-  updateLoadingState: (loadingState: boolean) => void;
+  searchPlayer: (
+    gameName: string,
+    gameTag: string,
+    region: string
+  ) => Promise<void>;
   updateError: (errorMessage: string) => void;
 };
 
-export default function Search({ updateData, updateLoadingState, updateError }: SearchProps){
+export default function Search({ searchPlayer, updateError }: SearchProps){
 const [gameId, setGameId] = useState("");
 // const [tag, setTag] = useState("");
 const [region, setRegion] = useState("EUNE");
@@ -45,25 +45,7 @@ async function handleSubmit(e: React.FormEvent) {
     return;
   }
 
-  updateLoadingState(true);
-
-  try {
-    const data = await searchPlayerRequest(
-      gameName.trim(),
-      gameTag.trim(),
-      region
-    );
-
-    updateData(data);
-  } catch (error) {
-    updateError(
-      error instanceof Error
-        ? error.message
-        : "Something went wrong while fetching the player."
-    );
-  } finally {
-    updateLoadingState(false);
-  }
+  await searchPlayer(gameName.trim(), gameTag.trim(), region);
 }
 
 

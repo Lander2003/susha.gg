@@ -136,6 +136,7 @@ function sendRouteError(res: Response, error: unknown) {
     if (error.status === 404) {
       const messageByOperation: Partial<Record<RiotOperation, string>> = {
         account: "Player not found",
+        "account-name": "Player identity not found",
         ranked: "Ranked data not found",
         "match-list": "Match history not found",
         "match-detail": "Match data not found",
@@ -329,8 +330,10 @@ app.get("/leaderboard", leaderboardLimiter, async (req, res) => {
     const { region, start, count } = queryResult.data;
 
     const platformRegion = platformMap[region];
+    const routingRegion = routingMap[region];
     const leaderboard = await getLeaderboard({
       platformRegion,
+      routingRegion,
       start,
       count,
       riotFetch,

@@ -7,6 +7,7 @@ import {
   matchesQuerySchema,
   parseRiotPayload,
   playerQuerySchema,
+  riotAccountIdentitySchema,
   riotAccountSchema,
 } from "./schemas.js";
 
@@ -55,5 +56,20 @@ test("rejects malformed Riot payloads with a typed error", () => {
   assert.throws(
     () => parseRiotPayload(riotAccountSchema, { puuid: 123 }, "account"),
     RiotPayloadError
+  );
+});
+
+test("validates a Riot account identity", () => {
+  assert.deepEqual(
+    riotAccountIdentitySchema.parse({
+      puuid: "player-puuid",
+      gameName: "Hide on bush",
+      tagLine: "KR1",
+    }),
+    {
+      puuid: "player-puuid",
+      gameName: "Hide on bush",
+      tagLine: "KR1",
+    }
   );
 });

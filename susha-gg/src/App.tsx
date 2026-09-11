@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Routes, Route } from "react-router-dom";
+import { useRef, useState } from 'react'
+import { Routes, Route, useNavigate } from "react-router-dom";
 import AboutMe from "./components/AboutMe";
 import Navbar from './components/Navbar'
 import Search from './components/Search'
@@ -7,26 +7,59 @@ import Leaderboard from './components/Leaderboard'
 import Content from './components/Content'
 import Footer from "./components/Footer";
 import type { PlayerData } from "./api/contracts";
+import { searchPlayerRequest } from "./api/searchPlayer";
 
 import './App.css'
 
 
 function App() {
+  const navigate = useNavigate();
   const [playerData, setPlayerData] = useState<PlayerData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const latestSearchId = useRef(0);
 
 
   function updateData(newData: PlayerData) {
     setPlayerData(newData);
   }
 
-  function updateLoadingState(loadingState: boolean) {
-    setIsLoading(loadingState);
-  }
-
   function setErrorMessage(errorMessage: string) {
     setError(errorMessage);
+  }
+
+  async function searchPlayer(
+    gameName: string,
+    gameTag: string,
+    region: string
+  ) {
+    const searchId = latestSearchId.current + 1;
+    latestSearchId.current = searchId;
+
+    setError("");
+    setPlayerData(null);
+    setIsLoading(true);
+    navigate("/");
+
+    try {
+      const data = await searchPlayerRequest(gameName, gameTag, region);
+
+      if (latestSearchId.current === searchId) {
+        setPlayerData(data);
+      }
+    } catch (error) {
+      if (latestSearchId.current === searchId) {
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Something went wrong while fetching the player."
+        );
+      }
+    } finally {
+      if (latestSearchId.current === searchId) {
+        setIsLoading(false);
+      }
+    }
   }
 
 
@@ -41,8 +74,7 @@ function App() {
           <main className={`home-page ${playerData ? "has-results" : "is-empty"}`}>
             <div className="searchForm">
               <Search
-                updateData={updateData}
-                updateLoadingState={updateLoadingState}
+                searchPlayer={searchPlayer}
                 updateError={setErrorMessage}
               />
               {error && <p className="error-message">{error}</p>}
@@ -54,7 +86,7 @@ function App() {
               <Content
                 playerData={playerData}
                 updateData={updateData}
-                updateLoadingState={updateLoadingState}
+                searchPlayer={searchPlayer}
               />
             )}
           </main>
@@ -62,7 +94,7 @@ function App() {
       />
 
       <Route path="/leaderboard" element={
-        <Leaderboard />} />
+        <Leaderboard searchPlayer={searchPlayer} />} />
       
 
     <Route path="/about-me" element={

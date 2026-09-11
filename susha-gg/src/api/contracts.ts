@@ -59,6 +59,8 @@ export const matchesResponseSchema = z.object({
 const leaderboardPlayerSchema = z.object({
   position: nonNegativeInteger,
   puuid: z.string(),
+  gameName: z.string().nullable(),
+  gameTag: z.string().nullable(),
   rank: z.string(),
   lp: nonNegativeInteger,
   wins: nonNegativeInteger,

@@ -52,6 +52,8 @@ export type MatchesResponse = {
 export type LeaderboardPlayer = {
   position: number;
   puuid: string;
+  gameName: string | null;
+  gameTag: string | null;
   rank: string;
   lp: number;
   wins: number;

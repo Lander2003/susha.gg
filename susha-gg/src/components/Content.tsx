@@ -2,13 +2,15 @@ import type { PlayerData } from "../api/contracts";
 import { getMatchesRequest } from "../api/getMatches";
 import { useState } from "react";
 import RankedSoloCard from "./RankedSoloCard";
-import { searchPlayerRequest } from "../api/searchPlayer";
 
 type ContentProps = {
   playerData: PlayerData | null;
   updateData: (newData: PlayerData) => void;
-  updateLoadingState: (loadingState: boolean) => void;
-  // errorMessage: string;
+  searchPlayer: (
+    gameName: string,
+    gameTag: string,
+    region: string
+  ) => Promise<void>;
 };
 
 type MatchPlayer = PlayerData["simplifiedMatches"][number]["players"][number];
@@ -66,7 +68,7 @@ function MatchTeam({ title, players, won, onPlayerClick }: TeamProps) {
   );
 }
 
-export default function Content({ playerData, updateData, updateLoadingState }: ContentProps) {
+export default function Content({ playerData, updateData, searchPlayer }: ContentProps) {
 
   const [openMatchId, setOpenMatchId] = useState<string | null>(null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -75,21 +77,8 @@ export default function Content({ playerData, updateData, updateLoadingState }: 
   gameTag: string
 ) {
   if (!playerData) return;
-  updateLoadingState(true);
-  try {
-    const data = await searchPlayerRequest(
-      gameName,
-      gameTag,
-      playerData.region
-    );
-
-    updateData(data);
-    setOpenMatchId(null);
-  } catch (error) {
-    console.error(error);
-  } finally {
-    updateLoadingState(false);
-  }
+  setOpenMatchId(null);
+  await searchPlayer(gameName, gameTag, playerData.region);
 }
 
   async function loadMoreMatches() {
