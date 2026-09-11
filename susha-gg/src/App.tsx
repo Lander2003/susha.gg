@@ -38,7 +38,7 @@ function App() {
       <Route
         path="/"
         element={
-          <main>
+          <main className={`home-page ${playerData ? "has-results" : "is-empty"}`}>
             <div className="searchForm">
               <Search
                 updateData={updateData}

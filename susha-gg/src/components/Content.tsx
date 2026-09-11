@@ -11,6 +11,61 @@ type ContentProps = {
   // errorMessage: string;
 };
 
+type MatchPlayer = PlayerData["simplifiedMatches"][number]["players"][number];
+
+function getQueueLabel(queueId: number) {
+  if (queueId === 420) return "Ranked Solo";
+  if (queueId === 440) return "Ranked Flex";
+  if (queueId === 450) return "ARAM";
+  return `Queue ${queueId}`;
+}
+
+type TeamProps = {
+  title: string;
+  players: MatchPlayer[];
+  won: boolean | undefined;
+  onPlayerClick: (gameName: string, gameTag: string) => void;
+};
+
+function MatchTeam({ title, players, won, onPlayerClick }: TeamProps) {
+  return (
+    <section className={`team-section ${won ? "team-won" : "team-lost"}`}>
+      <header className="team-heading">
+        <h3>{title}</h3>
+        <span>{won ? "Victory" : "Defeat"}</span>
+      </header>
+
+      {players.map((player) => {
+        const championImage =
+          `https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/${player.champion}.png`;
+        const displayName = player.gameName
+          ? player.gameName.length > 12
+            ? `${player.gameName.slice(0, 12)}...`
+            : player.gameName
+          : "Guest";
+
+        return (
+          <div className="match-player" key={player.puuid}>
+            <img src={championImage} alt={player.champion} />
+            <button
+              type="button"
+              className="player-name"
+              title={`${player.gameName}#${player.gameTag}`}
+              onClick={() => onPlayerClick(player.gameName, player.gameTag)}
+            >
+              {displayName}
+            </button>
+            <span className="team-kda">
+              {player.kills} / {player.deaths} / {player.assists}
+            </span>
+            <span className="team-cs">{player.cs} CS</span>
+          </div>
+        );
+      })}
+    </section>
+  );
+}
+
 export default function Content({ playerData, updateData, updateLoadingState }: ContentProps) {
 
   const [openMatchId, setOpenMatchId] = useState<string | null>(null);
@@ -72,18 +127,30 @@ export default function Content({ playerData, updateData, updateLoadingState }: 
   return (
     <div className="content-container">
       <div className="player-info">
-        <h1>{playerData.gameName}</h1>
+        <div className="player-identity">
+          <span className="section-label">Current player</span>
+          <h1>{playerData.gameName}</h1>
+          <p>
+            #{playerData.gameTag}
+            <span className="region-badge">{playerData.region}</span>
+          </p>
+        </div>
 
         <RankedSoloCard rankedSolo={playerData.rankedSolo}/>
       </div>
       <div className="player-matches">
+        <div className="matches-heading">
+          <div>
+            <span className="section-label">Performance</span>
+            <h2>Recent matches</h2>
+          </div>
+          <span>{playerData.simplifiedMatches.length} loaded</span>
+        </div>
   {playerData.simplifiedMatches.map((match) => {
     const searchedPlayer = match.searchedPlayer;
 
     const imageLink =
       `https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/${searchedPlayer.champion}.png`;
-
-    const color = searchedPlayer.win ? "#6dd57b" : "#ff9494";
 
     const isOpen = openMatchId === match.matchId;
     const blueTeam = match.players.filter(
@@ -97,38 +164,32 @@ export default function Content({ playerData, updateData, updateLoadingState }: 
     const redTeamWon = redTeam[0]?.win;
 
     return (
-      <div className="match-card-header" key={match.matchId}>
-        <div
-          className="match-card"
-          style={{ backgroundColor: color }}
-        >
-          <img
-            src={imageLink}
-            alt={searchedPlayer.champion}
-          />
-
-          <div>
-            <h2>{searchedPlayer.champion}</h2>
+      <article
+        className={`match-card-header ${searchedPlayer.win ? "victory" : "defeat"}`}
+        key={match.matchId}
+      >
+        <div className="match-card">
+          <div className="champion-info">
+            <img src={imageLink} alt={searchedPlayer.champion} />
+            <div>
+              <span className="match-result">
+                {searchedPlayer.win ? "Victory" : "Defeat"}
+              </span>
+              <h3>{searchedPlayer.champion}</h3>
+              <span className="queue-name">{getQueueLabel(match.queueId)}</span>
+            </div>
           </div>
 
-          <ul
-            style={
-              searchedPlayer.win
-                ? { backgroundColor: "#4ba657" }
-                : { backgroundColor: "rgb(148, 82, 82)" }
-            }
-          >
-            <li>
-              KDA: {searchedPlayer.kills}/{searchedPlayer.deaths}/
-              {searchedPlayer.assists}
-            </li>
-            <li>Role: {searchedPlayer.role}</li>
-            <li>
-              Game duration: {Math.floor(match.duration / 60)} minutes
-            </li>
-            <li>CS: {searchedPlayer.cs}</li>
-            <li>{searchedPlayer.win ? "Victory" : "Defeat"}</li>
-          </ul>
+          <div className="kda-block">
+            <strong>{searchedPlayer.kills} / {searchedPlayer.deaths} / {searchedPlayer.assists}</strong>
+            <span>K / D / A</span>
+          </div>
+
+          <dl className="match-stats">
+            <div><dt>Role</dt><dd>{searchedPlayer.role || "—"}</dd></div>
+            <div><dt>CS</dt><dd>{searchedPlayer.cs}</dd></div>
+            <div><dt>Duration</dt><dd>{Math.floor(match.duration / 60)}m</dd></div>
+          </dl>
 
           <button
             className="btn-show"
@@ -138,104 +199,27 @@ export default function Content({ playerData, updateData, updateLoadingState }: 
             }
           >
             {isOpen ? "Hide players" : "Show players"}
+            <span aria-hidden="true">{isOpen ? "−" : "+"}</span>
           </button>
         </div>
 
         {isOpen && (
           <div className="match-players">
-            <div
-              className="team-section"
-              style={{
-                backgroundColor: blueTeamWon
-                  ? "#9dffaa"
-                  : "#ffa5a5",
-              }}
-            >
-              <h3>
-                Blue Team - {blueTeamWon ? "Victory" : "Defeat"}
-              </h3>
-
-              {blueTeam.map((player) => {
-                const champImageLink =
-                  `https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/${player.champion}.png`;
-                   const displayName = player.gameName ? (player.gameName.length > 12 ? player.gameName.slice(0, 12) + '...' : player.gameName) : "Guest";
-                return (
-                  <div className="match-player" key={player.puuid}>
-                    <img
-                      src={champImageLink}
-                      alt={player.champion}
-                    />
-
-                    <button
-  type="button"
-  className="player-name"
-  title={player.gameName + "#" + player.gameTag}
-  onClick={() =>
-    searchMatchPlayer(player.gameName, player.gameTag)
-  }
->
-  {displayName}
-</button>
-
-                    <span>
-                      KDA: {player.kills}/{player.deaths}/
-                      {player.assists}
-                    </span>
-
-                    <span>CS: {player.cs}</span>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div
-              className="team-section"
-              style={{
-                backgroundColor: redTeamWon
-                  ? "#9dffaa"
-                  : "#ffa5a5",
-              }}
-            >
-              <h3>
-                Red Team - {redTeamWon ? "Victory" : "Defeat"}
-              </h3>
-
-              {redTeam.map((player) => {
-                const champImageLink =
-                  `https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/${player.champion}.png`;
-                  const displayName = player.gameName ? (player.gameName.length > 12 ? player.gameName.slice(0, 12) + '...' : player.gameName) : "Guest";
-
-                return (
-                  <div className="match-player" key={player.puuid}>
-                    <img
-                      src={champImageLink}
-                      alt={player.champion}
-                    />
-
-                    <button
-  type="button"
-  title={player.gameName + "#" + player.gameTag}
-  className="player-name"
-  onClick={() =>
-    searchMatchPlayer(player.gameName, player.gameTag)
-  }
->
-  {displayName}
-</button>
-
-                    <span>
-                      KDA: {player.kills}/{player.deaths}/
-                      {player.assists}
-                    </span>
-
-                    <span>CS: {player.cs}</span>
-                  </div>
-                );
-              })}
-            </div>
+            <MatchTeam
+              title="Blue Team"
+              players={blueTeam}
+              won={blueTeamWon}
+              onPlayerClick={searchMatchPlayer}
+            />
+            <MatchTeam
+              title="Red Team"
+              players={redTeam}
+              won={redTeamWon}
+              onPlayerClick={searchMatchPlayer}
+            />
           </div>
         )}
-      </div>
+      </article>
     );
   })}
 

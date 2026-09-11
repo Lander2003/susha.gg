@@ -67,24 +67,45 @@ async function handleSubmit(e: React.FormEvent) {
 }
 
 
-    return(
-        <>
-           <h1>Search for a player</h1>
-           <form onSubmit={handleSubmit} action="">
-            <input type="text" 
-                   value={gameId}
-                   placeholder="Example: Carnivore#beef"
-                   onChange={(e) => setGameId(e.target.value)}
-            />
-            <select name="" id="" value={region} onChange={(e) => setRegion(e.target.value)}>
-              <option value="EUNE">EUNE</option>
-              <option value="EUW">EUW</option>
-              <option value="KR">KR</option>
-              <option value="BR">BR</option>
-              <option value="OCE">OCE</option>
-            </select>
-            <button type="submit">Search user</button>
-           </form>
-        </>
-    )
+  return (
+    <>
+      <div className="search-heading">
+        <h1>Search for a player</h1>
+        <p>Enter a Riot ID to view ranked stats and recent matches.</p>
+      </div>
+
+      <form className="search-controls" onSubmit={handleSubmit}>
+        <label className="sr-only" htmlFor="riot-id">Riot ID</label>
+        <input
+          id="riot-id"
+          type="text"
+          value={gameId}
+          placeholder="Example: Carnivore#beef"
+          autoComplete="off"
+          onChange={(e) => setGameId(e.target.value)}
+        />
+
+        <label className="sr-only" htmlFor="region">Region</label>
+        <select
+          id="region"
+          value={region}
+          onChange={(e) => setRegion(e.target.value)}
+        >
+          <option value="EUNE">EUNE</option>
+          <option value="EUW">EUW</option>
+          <option value="KR">KR</option>
+          <option value="BR">BR</option>
+          <option value="OCE">OCE</option>
+        </select>
+
+        <button type="submit">Search user</button>
+      </form>
+
+      <div className="search-features" aria-label="Available player information">
+        <span>Ranked solo profile</span>
+        <span>Recent match history</span>
+        <span>Detailed team results</span>
+      </div>
+    </>
+  );
 }
