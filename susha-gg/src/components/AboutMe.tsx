@@ -9,7 +9,7 @@ export default function AboutMe() {
             <span className="section-label">Behind susha.gg</span>
             <h1>About Me</h1>
             <p className="about-lead"><b>I'm a Full-Stack Engineer based in Berlin</b></p>
-            <p>As a passion project to challenge myself, I built susha.gg, a full-stack League of Legends statistics application. While giants like OP.GG and similar already rule the rift, building this tool allowed me to master complex state management, data caching, and the Riot Games API.</p>
+            <p>SUSHA.GG is a League of Legends statistics platform I built to explore full-stack product development with live game data. It combines a React frontend with an Express API, Riot Games data, caching, and ranked-match insights—while keeping the experience focused and fast.</p>
             <div className="about-actions">
               <a className="btn github" target="_blank" rel="noreferrer" href="https://github.com/Lander2003">Github</a>
               <a className="btn linkedin" target="_blank" rel="noreferrer" href="https://www.linkedin.com/in/luka-susha/">LinkedIn</a>
