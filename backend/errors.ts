@@ -1,5 +1,6 @@
 export type RiotOperation =
   | "account"
+  | "account-name"
   | "ranked"
   | "match-list"
   | "match-detail"

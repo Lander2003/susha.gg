@@ -74,6 +74,11 @@ export const riotAccountSchema = z.object({
   puuid: z.string().min(1),
 });
 
+export const riotAccountIdentitySchema = riotAccountSchema.extend({
+  gameName: z.string().min(1),
+  tagLine: z.string().min(1),
+});
+
 export const riotLeagueEntriesSchema = z.array(
   z.object({
     queueType: z.string(),

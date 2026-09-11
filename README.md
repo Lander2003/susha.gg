@@ -30,8 +30,9 @@ The application is public and read-only. It does not currently have user account
 - Distinguish victories and defeats with restrained result styling
 - Expand a match to inspect both teams and participant statistics
 - Search for another player directly from an expanded match
-- Browse paginated regional Challenger leaderboards
-- Cache leaderboard and match-detail responses in memory
+- Browse paginated regional Challenger leaderboards with resolved Riot IDs
+- Open a player's full profile directly from the leaderboard
+- Cache leaderboard, player-identity, and match-detail responses in memory
 - Validate client input, API queries, Riot payloads, and frontend API responses
 - Handle Riot not-found, authentication, rate-limit, network, and malformed-payload failures separately
 - Protect the backend with CORS, Helmet, request limits, and route-specific rate limiting
@@ -92,7 +93,7 @@ React + Vite frontend (Vercel)
               v
 Express API (Render)
   |           |            |
-  |           |            +-- In-memory cache
+  |           |            +-- In-memory stats and identity cache
   |           +--------------- Zod query and payload validation
   +--------------------------- Riot Account, League, and Match APIs
 ```
@@ -150,6 +151,11 @@ Fetches a paginated regional Challenger Solo/Duo leaderboard.
 
 `count` defaults to `25` and is limited to `50`.
 
+The backend resolves Riot IDs only for the requested page, caches successful
+PUUID-to-Riot-ID lookups for seven days, and returns nullable `gameName` and
+`gameTag` fields. A failed identity lookup does not discard the player's
+leaderboard statistics.
+
 ### Supported regions
 
 The API supports `NA`, `BR`, `OCE`, `EUNE`, `EUW`, and `KR`. Region values are normalized to uppercase and mapped to the appropriate Riot platform and routing clusters by the backend.
@@ -190,6 +196,7 @@ Riot requests use a 10-second timeout. When Riot supplies a `Retry-After` value 
 - Generic internal error responses that avoid exposing stack traces or credentials
 - Match details cached for 24 hours
 - Leaderboard data cached for 5 minutes
+- Successful leaderboard identity lookups cached for 7 days
 - Cache limited to 500 entries with oldest-entry eviction
 
 The cache is process-local and resets when the backend restarts. Multiple backend instances do not share cached data.

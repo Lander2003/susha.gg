@@ -6,7 +6,15 @@ import {
 
 const regions = ["EUNE", "EUW", "KR", "NA", "BR", "OCE"];
 
-export default function Leaderboard() {
+type LeaderboardProps = {
+  searchPlayer: (
+    gameName: string,
+    gameTag: string,
+    region: string
+  ) => Promise<void>;
+};
+
+export default function Leaderboard({ searchPlayer }: LeaderboardProps) {
   const [region, setRegion] = useState("EUW");
   const [leaderboard, setLeaderboard] =
     useState<LeaderboardData | null>(null);
@@ -137,10 +145,36 @@ export default function Leaderboard() {
     </thead>
 
     <tbody>
-      {leaderboard.players.map((player) => (
+      {leaderboard.players.map((player) => {
+        const gameName = player.gameName;
+        const gameTag = player.gameTag;
+
+        return (
         <tr key={player.puuid}>
           <td>{player.position}</td>
-          <td>Player #{player.position}</td>
+          <td>
+            {gameName && gameTag ? (
+              <button
+                type="button"
+                className="leaderboard-player"
+                title={`View ${gameName}#${gameTag}`}
+                onClick={() =>
+                  void searchPlayer(
+                    gameName,
+                    gameTag,
+                    leaderboard.region
+                  )
+                }
+              >
+                <span>{gameName}</span>
+                <small>#{gameTag}</small>
+              </button>
+            ) : (
+              <span className="leaderboard-player-fallback">
+                Player #{player.position}
+              </span>
+            )}
+          </td>
           <td>{player.rank}</td>
           <td>{player.lp}</td>
           <td>{player.wins}</td>
@@ -148,7 +182,8 @@ export default function Leaderboard() {
           <td>{player.totalGames}</td>
           <td>{player.winRate}%</td>
         </tr>
-      ))}
+        );
+      })}
     </tbody>
   </table>
 </div>
