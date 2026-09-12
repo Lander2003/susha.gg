@@ -37,6 +37,35 @@ The application is public and read-only. It does not currently have user account
 - Handle Riot not-found, authentication, rate-limit, network, and malformed-payload failures separately
 - Protect the backend with CORS, Helmet, request limits, and route-specific rate limiting
 - Responsive layouts for desktop, tablet, and mobile
+- On-demand Personal Meta: ranked statistics, evidence-based focus picks, and a deterministic improvement plan
+
+## Personal Meta
+
+After a player search, select **Analyze my ranked games**. The three views are:
+
+- **Personal Meta:** a focus pick and familiar alternative from the player's most-played role, plus promising picks and picks needing review.
+- **Statistics:** champion-by-role and role breakdowns, win rate, KDA, CS/min, kill participation, vision/min, damage/min and gold/min.
+- **Improvement plan:** up to three evidence-based review prompts and a suggested next-10-game experiment.
+
+The backend examines up to 50 Solo/Duo (queue 420) matches from the last 90 days. Results arrive in batches of 10; exclusions may leave fewer than 50 eligible games. Non-Solo/Duo matches, games shorter than five minutes, early-surrender flags, and matches missing the requested participant are excluded. The latest 20 eligible matches and the preceding matches are separate comparison windows. Reports display sample sizes, patch coverage, exclusions and generation time.
+
+There is no generative AI, model key or new paid service. Recommendations are deterministic and explained in the UI. Focus picks need at least 10 champion-role games and are ordered by `(wins + 5) / (games + 10)`; this is a small-sample adjustment, not an MMR or win-probability estimate. Review labels also require enough same-role comparison games. Farming/death prompts compare the same champion and role across separate windows, with at least five observations in each. Supports do not receive farming targets. Missing optional metrics remain unavailable rather than becoming zero.
+
+These observations cannot prove causes, assess laning phases from final totals, or guarantee wins. This version uses recent ranked history, not lifetime mastery or season-wide champion totals. Match timelines, mastery context and new-champion recommendations remain future extensions.
+
+### `GET /personal-meta`
+
+```text
+/personal-meta?puuid=PLAYER_PUUID&region=EUW&count=10
+```
+
+`count` accepts 10, 20, 30, 40 or 50. Follow the returned `nextCount` until it is null. Cold requests are limited to the first batch even when a larger count is requested. The response includes `overall`, `recent`, `previous`, `roles`, `champions`, `pool`, `insights` and coverage metadata.
+
+Match details reuse the existing cache. Analysis reports and ranked match-ID lists are cached for 15 minutes. Only one uncached analysis runs at a time per backend process; identical requests share work, while other analysis requests receive 429 with Retry-After. Analysis upstream calls are spaced by at least 1.4 seconds and pause after a Riot 429. The frontend preserves completed batches on error and lets the user continue manually. No automatic retry loop runs after errors. The endpoint allows 30 requests per 15 minutes per IP.
+
+The first uncached report can take over a minute. Caches are bounded and process-local: restarts or eviction can require rebuilding. Other Riot endpoints share the API key, so pacing reduces load but cannot guarantee spare rate-limit capacity. Deploy the updated backend before the frontend; no new environment variables are required.
+
+Backend tests cover statistical edge cases, sample gating, queue filtering, caching and query validation. The mocked Personal Meta browser test can run against the frontend alone with `META_TEST_URL=http://localhost:5173` and `npx playwright test tests/personal-meta.spec.ts --project=chromium`.
 
 ## Frontend Design
 
@@ -98,7 +127,7 @@ Express API (Render)
   +--------------------------- Riot Account, League, and Match APIs
 ```
 
-The frontend uses `VITE_API_URL` as the backend base URL. All requests go through a shared client that parses JSON, preserves API error messages, and validates successful responses with route-specific Zod schemas before the data enters React state.
+The frontend uses `VITE_API_URL` as the backend base URL. API clients parse JSON, preserve API error messages, and validate successful responses with route-specific Zod schemas before the data enters React state. Personal Meta uses an abortable client so changing profiles can cancel browser-side analysis work.
 
 The backend treats Riot responses as unknown data and validates them before transforming them. The Riot API key is stored only in the backend environment and is never sent to the browser.
 
