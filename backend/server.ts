@@ -17,11 +17,13 @@ import {
 } from "./errors.js";
 import { getSimplifiedMatches } from "./getSimplifiedMatches.js";
 import { getLeaderboard } from "./getLeaderboard.js";
+import { getPersonalMeta } from "./personalMeta.js";
 import {
   leaderboardQuerySchema,
   matchesQuerySchema,
   parseRiotPayload,
   playerQuerySchema,
+  personalMetaQuerySchema,
   riotAccountSchema,
   riotLeagueEntriesSchema,
   type Region,
@@ -354,6 +356,27 @@ app.get("/leaderboard", leaderboardLimiter, async (req, res) => {
 
     return res.json(responseBody);
   } catch (error: unknown) {
+    return sendRouteError(res, error);
+  }
+});
+
+const metaLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: { error: "Too many analysis requests. Please try again later." },
+});
+
+app.get("/personal-meta", metaLimiter, async (req, res) => {
+  const query = personalMetaQuerySchema.safeParse(req.query);
+  if (!query.success) return sendInvalidQuery(res, query.error.issues);
+  try {
+    const { puuid, region, count } = query.data;
+    return res.json(await getPersonalMeta(puuid, region, routingMap[region], count, riotFetch));
+  } catch (error) {
+    if (error instanceof RiotApiError && error.status === 429) {
+      res.setHeader("Retry-After", error.retryAfter || "120");
+      return res.status(429).json({ error: "Analysis is busy or Riot has limited requests. Your completed results are kept; try continuing shortly." });
+    }
     return sendRouteError(res, error);
   }
 });

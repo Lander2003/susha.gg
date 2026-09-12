@@ -2,6 +2,7 @@ import type { PlayerData } from "../api/contracts";
 import { getMatchesRequest } from "../api/getMatches";
 import { useState } from "react";
 import RankedSoloCard from "./RankedSoloCard";
+import PersonalMeta, { type MetaLoadStatus } from "./PersonalMeta";
 
 type ContentProps = {
   playerData: PlayerData | null;
@@ -88,6 +89,8 @@ export default function Content({ playerData, updateData, searchPlayer }: Conten
 
   const [openMatchId, setOpenMatchId] = useState<string | null>(null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [activeView, setActiveView] = useState<"matches" | "meta">("matches");
+  const [metaStatus, setMetaStatus] = useState<MetaLoadStatus>("idle");
   async function searchMatchPlayer(
   gameName: string,
   gameTag: string
@@ -142,7 +145,19 @@ export default function Content({ playerData, updateData, searchPlayer }: Conten
         </div>
 
         <RankedSoloCard rankedSolo={playerData.rankedSolo}/>
+        <button className="meta-entry" type="button" onClick={() => setActiveView("meta")}>
+          <span><span className="section-label">Personal Meta</span>Find your strongest picks and next improvement goal.</span>
+          <strong>{metaStatus === "loading" ? "Analyzing…" : metaStatus === "ready" ? "Ready" : metaStatus === "partial" ? "Continue" : "Explore"}<span aria-hidden="true">→</span></strong>
+        </button>
       </div>
+      <div className="result-main">
+        <nav className="result-view-tabs" aria-label="Player result views">
+          <button type="button" aria-pressed={activeView === "matches"} onClick={() => setActiveView("matches")}>Match history</button>
+          <button type="button" aria-pressed={activeView === "meta"} onClick={() => setActiveView("meta")}>
+            Personal Meta{metaStatus === "loading" ? <span className="tab-status">Analyzing</span> : metaStatus === "ready" ? <span className="tab-status">Ready</span> : null}
+          </button>
+        </nav>
+        <div className="result-view-content" hidden={activeView !== "matches"}>
       <div className="player-matches">
         <div className="matches-heading">
           <div>
@@ -241,6 +256,11 @@ export default function Content({ playerData, updateData, searchPlayer }: Conten
     </button>
   )}
 </div>
+        </div>
+        <div className="result-view-content" hidden={activeView !== "meta"}>
+          <PersonalMeta puuid={playerData.puuid} region={playerData.region} onStatusChange={setMetaStatus} />
+        </div>
+      </div>
     </div>
   )
 
