@@ -84,6 +84,7 @@ function App() {
 
             {!isLoading && playerData && (
               <Content
+                key={`${playerData.region}:${playerData.puuid}`}
                 playerData={playerData}
                 updateData={updateData}
                 searchPlayer={searchPlayer}

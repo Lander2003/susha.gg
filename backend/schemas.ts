@@ -103,6 +103,10 @@ const riotParticipantSchema = z.object({
   teamId: z.number().int(),
   totalMinionsKilled: nonNegativeInteger,
   neutralMinionsKilled: nonNegativeInteger,
+  goldEarned: nonNegativeInteger.optional(),
+  totalDamageDealtToChampions: nonNegativeInteger.optional(),
+  visionScore: nonNegativeInteger.optional(),
+  gameEndedInEarlySurrender: z.boolean().optional(),
 });
 
 export const riotMatchIdsSchema = z.array(z.string().min(1));
@@ -114,7 +118,15 @@ export const riotMatchSchema = z.object({
   info: z.object({
     gameDuration: nonNegativeInteger,
     queueId: z.number().int(),
+    gameCreation: nonNegativeInteger.optional(),
+    gameVersion: z.string().optional(),
     participants: z.array(riotParticipantSchema),
+  }),
+});
+
+export const personalMetaQuerySchema = matchesQuerySchema.pick({ puuid: true, region: true }).extend({
+  count: integerQuery(10, 50).refine(value => [10, 20, 30, 40, 50].includes(value), {
+    message: "Analysis count must be 10, 20, 30, 40 or 50",
   }),
 });
 

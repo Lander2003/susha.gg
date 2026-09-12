@@ -72,7 +72,7 @@ export async function getSimplifiedMatches({
   return { matchIds, simplifiedMatches };
 }
 
-async function getMatchDetails({
+export async function getMatchDetails({
   matchId,
   routingRegion,
   riotFetch,
