@@ -66,14 +66,6 @@ function App() {
    return (
   <div className="page-wrapper">
     <Navbar />
-    <p style={{
-      color: "red",
-      margin: "30px auto",
-      width: "fit-content",
-      backgroundColor: "#ffc1c1",
-      border: "1px solid red",
-      padding: "15px 20px"
-      }}>SUSHA.GG is temporarily unavailable while Riot Production ready API access is being finalized!</p>
     <Routes>
       <Route
         path="/"
