@@ -66,7 +66,6 @@ function App() {
    return (
   <div className="page-wrapper">
     <Navbar />
-
     <Routes>
       <Route
         path="/"
